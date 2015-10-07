@@ -3,6 +3,8 @@ package de.struckmeierfliesen.ds.wochenbericht;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -31,20 +33,26 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements EntryListAdapter.OnEntryClickListener {
 
     private Date date = new Date();
     private EditText dateView;
     private EditText clientEdit;
     private EditText workEdit;
+    private Button cancelButton;
     private int duration = 0;
     private int installerId = 0;
     private ArrayAdapter<String> installerAdapter;
     private EntryListAdapter entryListAdapter;
     private BiMap<String, Integer> installers = HashBiMap.create();
     private ArrayList<String> installerStrings = new ArrayList<String>(); // TODO use BiMap instead
+    private SelectAgainSpinner installerSpinner;
+    private Spinner durationSpinner;
 
     private DataBaseConnection dbConn;
+
+    // -1 means editing is off and if editingId is on this variable holds the id of the entry being edited
+    private int editingId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +67,10 @@ public class MainActivity extends AppCompatActivity {
         dateView = (EditText) findViewById(R.id.editDate);
         clientEdit = (EditText) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
+        cancelButton = (Button) findViewById(R.id.cancelButton);
 
         // set up number picker
-        Spinner durationSpinner = (Spinner) findViewById(R.id.durationSpinner);
+        durationSpinner = (Spinner) findViewById(R.id.durationSpinner);
         ArrayList<String> durationStrings = new ArrayList<String>();
         durationStrings.add("0:15");
         for(int i = 1; i <= 16; i++) {
@@ -83,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // set up DateView
-        updateDateView();
+        updateDateView(new Date());
         dateView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,12 +105,16 @@ public class MainActivity extends AppCompatActivity {
         //updateDurationView();
         // TODO DurationPicker
 
-        // set up Button
+        // set up submitButton
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Entry entry = extractDataFromInputs();
-                addEntry(entry);
+                if(editingId == -1)
+                    addEntry(entry);
+                else
+                    editEntry(entry);
+                stopEditing();
             }
         });
 
@@ -120,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // set up Installer Spinner
-        SelectAgainSpinner installerSpinner = (SelectAgainSpinner) findViewById(R.id.spinner);
+        installerSpinner = (SelectAgainSpinner) findViewById(R.id.spinner);
 
         getInstallers();
 
@@ -147,8 +160,17 @@ public class MainActivity extends AppCompatActivity {
         //set up RecyclerView
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.listView);
         entryListAdapter = new EntryListAdapter(getEntries());
+        entryListAdapter.setEntryClickListener(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(entryListAdapter);
+
+        // set up cancelButton
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopEditing();
+            }
+        });
     }
 
     private ArrayList<Entry> getEntries() {
@@ -168,8 +190,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void addEntry(Entry entry) {
         dbConn.open();
-        if(entry != null) dbConn.saveEntry(entry);
-        entryListAdapter.addEntry(entry, 0);
+        if(entry != null) {
+            dbConn.saveEntry(entry);
+            entryListAdapter.addEntry(entry, 0);
+        }
         dbConn.close();
     }
 
@@ -184,6 +208,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_settings:
+                Util.alert(this, "So true, amenakoi!!");
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=es1GSNj3VL8")));
                 return true;
         }
 
@@ -203,12 +229,13 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
-        // clear inputs
-        workEdit.setText("");
-        clientEdit.setText("");
+        // clear inputs TODO unnecessary?
+        /*workEdit.setText("");
+        clientEdit.setText("");*/
 
         Entry entry = new Entry(client, this.date, duration, installerId, work);
         entry.installer = installers.inverse().get(installerId);
+        entry.id = editingId;
         return entry;
     }
 
@@ -230,9 +257,9 @@ public class MainActivity extends AppCompatActivity {
         public void onDateSet(DatePicker view, int year, int month, int day) {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, day);
-            MainActivity activity = (MainActivity) getActivity();
-            activity.date = calendar.getTime();
-            activity.updateDateView();
+            MainActivity mainActivity = (MainActivity) getActivity();
+            mainActivity.date = calendar.getTime();
+            mainActivity.updateDateView(mainActivity.date);
             // TODO Util.alert(getContext(), day + "." + month + "." + (year - 2000));
         }
     }
@@ -285,7 +312,40 @@ public class MainActivity extends AppCompatActivity {
         installerAdapter.notifyDataSetChanged();
     }
 
-    private void updateDateView() {
-        dateView.setText(DateFormat.format("dd.MM.yy", this.date));
+    private void updateDateView(Date date) {
+        dateView.setText(DateFormat.format("dd.MM.yy", date));
+    }
+
+    // from EntryHolder.OnEntryClickListener interface
+    @Override
+    public void entryClicked(View view, Entry entry) {
+        startEditing(entry);
+    }
+
+    public void startEditing(Entry entry) {
+        clientEdit.setText(entry.client);
+        workEdit.setText(entry.work);
+        updateDateView(entry.date);
+        durationSpinner.setSelection(entry.duration);
+        installerSpinner.setSelection(installerStrings.indexOf(entry.installer));
+        cancelButton.setVisibility(View.VISIBLE);
+        editingId = entry.id;
+    }
+
+    public void editEntry(Entry entry) {
+        dbConn.open();
+        dbConn.editEntry(entry);
+        dbConn.close();
+        entryListAdapter.editEntry(entry);
+    }
+
+    public void stopEditing() {
+        clientEdit.setText("");
+        workEdit.setText("");
+        updateDateView(new Date());
+        durationSpinner.setSelection(0);
+        installerSpinner.setSelection(0);
+        cancelButton.setVisibility(View.GONE);
+        editingId = -1;
     }
 }

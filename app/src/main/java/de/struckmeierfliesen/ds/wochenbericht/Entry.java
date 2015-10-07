@@ -5,6 +5,7 @@ import android.text.format.DateFormat;
 import java.util.Date;
 
 public class Entry {
+    public int id = -1;
     public String client;
     public Date date;
     public int duration;
@@ -13,6 +14,7 @@ public class Entry {
     public String installer = null;
 
     public Entry(String client, Date date, int duration, int installerId, String work) {
+        this.id = id;
         this.client = client;
         this.date = date;
         this.duration = duration;

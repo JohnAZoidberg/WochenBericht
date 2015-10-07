@@ -62,6 +62,7 @@ public class DataBaseConnection {
 
     private Entry cursorToEntry(Cursor cursor) {
         if(cursor.getCount() == 0) return null;
+        int id = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_ID));
         String client = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_CLIENT));
         long time = (long) cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_DATE)) * 1000;
         Date date = new Date(time);
@@ -69,23 +70,19 @@ public class DataBaseConnection {
         int installerId = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_INSTALLER_ID));
         String work = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_WORK));
 
-        return new Entry(
+        Entry entry = new Entry(
                 client,
                 date,
                 duration,
                 installerId,
                 work
         );
+        entry.id = id;
+        return entry;
     }
 
     public void saveEntry(Entry entry) {
-        ContentValues values = new ContentValues();
-        values.put(MySQLiteHelper.COLUMN_CLIENT, entry.client);
-        long time = entry.date.getTime() / 1000;
-        values.put(MySQLiteHelper.COLUMN_DATE, time);
-        values.put(MySQLiteHelper.COLUMN_DURATION, entry.duration);
-        values.put(MySQLiteHelper.COLUMN_INSTALLER_ID, entry.installerId);
-        values.put(MySQLiteHelper.COLUMN_WORK, entry.work);
+        ContentValues values = entryToValues(entry);
         database.insert(MySQLiteHelper.TABLE_ENTRIES, null, values);
     }
 
@@ -121,5 +118,22 @@ public class DataBaseConnection {
 
     public ArrayList<Entry> getEntriesWithInstaller() {
         return idToInstaller(getEntries());
+    }
+
+    public void editEntry(Entry entry) {
+        ContentValues values = entryToValues(entry);
+        if(entry.id != -1)
+            database.update(MySQLiteHelper.TABLE_ENTRIES, values, MySQLiteHelper.COLUMN_ID + "=" + entry.id, null);
+    }
+
+    private ContentValues entryToValues(Entry entry) {
+        ContentValues values = new ContentValues();
+        values.put(MySQLiteHelper.COLUMN_CLIENT, entry.client);
+        long time = entry.date.getTime() / 1000;
+        values.put(MySQLiteHelper.COLUMN_DATE, time);
+        values.put(MySQLiteHelper.COLUMN_DURATION, entry.duration);
+        values.put(MySQLiteHelper.COLUMN_INSTALLER_ID, entry.installerId);
+        values.put(MySQLiteHelper.COLUMN_WORK, entry.work);
+        return values;
     }
 }
