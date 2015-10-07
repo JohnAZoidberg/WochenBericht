@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">WochenBericht</string>
+    <string name="action_settings">Settings</string>
+    <string name="add">Hinzufügen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="add_installer">Monteur hinzufügen</string>
+    <string name="date">Datum</string>
+    <string name="client">Kunde</string>
+    <string name="work_description">Arbeitsbeschreibung</string>
+    <string name="duration">Dauer</string>
+    <string name="save">Speichern</string>
+    <string name="please_enter_input">Bitte etwas eingeben.</string>
+</resources>
