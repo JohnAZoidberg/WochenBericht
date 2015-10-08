@@ -136,4 +136,9 @@ public class DataBaseConnection {
         values.put(MySQLiteHelper.COLUMN_WORK, entry.work);
         return values;
     }
+
+    // return true if exactly one row was removed
+    public boolean deleteEntry(Entry entry) {
+        return database.delete(MySQLiteHelper.TABLE_ENTRIES, MySQLiteHelper.COLUMN_ID + "=" + entry.id, null) == 1;
+    }
 }

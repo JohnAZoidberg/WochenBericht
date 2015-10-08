@@ -101,19 +101,17 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             }
         });
 
-        // set up DurationView
-        //updateDurationView();
-        // TODO DurationPicker
-
         // set up submitButton
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Entry entry = extractDataFromInputs();
-                if(editingId == -1)
-                    addEntry(entry);
-                else
-                    editEntry(entry);
+                if(entry != null) {
+                    if(editingId == -1)
+                        addEntry(entry);
+                    else
+                        editEntry(entry);
+                }
                 stopEditing();
             }
         });
@@ -140,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         installerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, installerStrings);
         installerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         installerSpinner.setAdapter(installerAdapter);
-        installerSpinner.setSelection(0);
         installerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -156,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+        installerSpinner.setSelection(0);
 
         //set up RecyclerView
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.listView);
@@ -229,11 +227,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             return null;
         }
 
-        // clear inputs TODO unnecessary?
-        /*workEdit.setText("");
-        clientEdit.setText("");*/
-
-        Entry entry = new Entry(client, this.date, duration, installerId, work);
+        Entry entry = new Entry(client, this.date, duration, installerId, work); // TODO ID NEEDS TO BE SET
         entry.installer = installers.inverse().get(installerId);
         entry.id = editingId;
         return entry;
@@ -260,7 +254,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             MainActivity mainActivity = (MainActivity) getActivity();
             mainActivity.date = calendar.getTime();
             mainActivity.updateDateView(mainActivity.date);
-            // TODO Util.alert(getContext(), day + "." + month + "." + (year - 2000));
         }
     }
 
@@ -322,6 +315,12 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         startEditing(entry);
     }
 
+    @Override
+    public void entryLongClicked(View view, Entry entry) {
+        Util.alert(this, "Delete Entry" + entry.id);
+        deleteEntry(entry);
+    }
+
     public void startEditing(Entry entry) {
         clientEdit.setText(entry.client);
         workEdit.setText(entry.work);
@@ -347,5 +346,12 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         installerSpinner.setSelection(0);
         cancelButton.setVisibility(View.GONE);
         editingId = -1;
+    }
+
+    public void deleteEntry(Entry entry) {
+        dbConn.open();
+        dbConn.deleteEntry(entry);
+        dbConn.close();
+        entryListAdapter.deleteEntry(entry);
     }
 }

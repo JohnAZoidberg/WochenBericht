@@ -61,11 +61,17 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
         notifyDataSetChanged();
     }
 
-    public interface OnEntryClickListener {
-        public void entryClicked(View view, Entry entry);
+    public void deleteEntry(Entry entry) {
+        items.remove(entry);
+        notifyDataSetChanged();
     }
 
-    public class EntryHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public interface OnEntryClickListener {
+        public void entryClicked(View view, Entry entry);
+        public void entryLongClicked(View view, Entry entry);
+    }
+
+    public class EntryHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
 
         private EntriesListBinding binding;
 
@@ -73,6 +79,7 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
             super(binding.getRoot());
             this.binding = binding;
             binding.entriesList.setOnClickListener(this);
+            binding.entriesList.setOnLongClickListener(this);
         }
 
         public void bindConnection(Entry entry) {
@@ -82,6 +89,12 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
         @Override
         public void onClick(View v) {
             if(clickListener != null) clickListener.entryClicked(v, items.get(getAdapterPosition()));
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if(clickListener != null) clickListener.entryLongClicked(v, items.get(getAdapterPosition()));
+            return true;
         }
     }
 }
