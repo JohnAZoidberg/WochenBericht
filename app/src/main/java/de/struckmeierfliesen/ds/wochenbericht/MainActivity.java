@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,6 +26,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -35,8 +37,9 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements EntryListAdapter.OnEntryClickListener {
 
+    private static final int SET_ENTRY_DATE = 0;
+    private static final int SET_SHOWN_DATE = 1;
     private Date date = new Date();
-    private EditText dateView;
     private EditText clientEdit;
     private EditText workEdit;
     private Button cancelButton;
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     private ArrayList<String> installerStrings = new ArrayList<String>(); // TODO use BiMap instead
     private SelectAgainSpinner installerSpinner;
     private Spinner durationSpinner;
+    private TextView changeDateButton;
 
     private DataBaseConnection dbConn;
 
@@ -58,13 +62,29 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // initialize DataBaseConnection
+        dbConn = new DataBaseConnection(this);
+
+        // set up Toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        dbConn = new DataBaseConnection(this);
+        ActionBar supportActionBar = getSupportActionBar();
+        if(supportActionBar != null) supportActionBar.setDisplayShowTitleEnabled(false);
+        changeDateButton = (TextView) findViewById(R.id.changeDate);
+        changeDateButton.setText(DateFormat.format("dd.MM.yy", date) + "  ");
+        changeDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment dateFragment = new DatePickerFragment();
+                Bundle args = new Bundle();
+                args.putIntArray("date", Util.extractIntFromDate(MainActivity.this.date));
+                dateFragment.setArguments(args);
+                dateFragment.show(getSupportFragmentManager(), "datePicker");
+            }
+        });
 
         // findViews
         Button submitButton = (Button) findViewById(R.id.button);
-        dateView = (EditText) findViewById(R.id.editDate);
         clientEdit = (EditText) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
         cancelButton = (Button) findViewById(R.id.cancelButton);
@@ -91,16 +111,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             }
         });
 
-        // set up DateView
-        updateDateView(new Date());
-        dateView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DialogFragment dateFragment = new DatePickerFragment();
-                dateFragment.show(getSupportFragmentManager(), "datePicker");
-            }
-        });
-
         // set up submitButton
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             @Override
             public void onClick(View view) {
                 String displayString = "";
-                ArrayList<Entry> entries = getEntries();
+                ArrayList<Entry> entries = getEntries(date);
                 for(Entry entry : entries) {
                     displayString += entry.toString() + "\n";
                 }
@@ -157,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
 
         //set up RecyclerView
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.listView);
-        entryListAdapter = new EntryListAdapter(getEntries());
+        entryListAdapter = new EntryListAdapter(getEntries(date));
         entryListAdapter.setEntryClickListener(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(entryListAdapter);
@@ -171,9 +181,9 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         });
     }
 
-    private ArrayList<Entry> getEntries() {
+    private ArrayList<Entry> getEntries(Date date) {
         dbConn.open();
-        ArrayList<Entry> entries = dbConn.getEntriesWithInstaller();
+        ArrayList<Entry> entries = dbConn.getEntriesWithInstaller(date);
         dbConn.close();
         return entries;
     }
@@ -189,8 +199,8 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     private void addEntry(Entry entry) {
         dbConn.open();
         if(entry != null) {
-            dbConn.saveEntry(entry);
-            entryListAdapter.addEntry(entry, 0);
+            entry.id = dbConn.saveEntry(entry);
+           entryListAdapter.addEntry(entry, 0);
         }
         dbConn.close();
     }
@@ -206,8 +216,8 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_settings:
-                Util.alert(this, "So true, amenakoi!!");
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=es1GSNj3VL8")));
+                //Util.alert(this, "So true, amenakoi!!");
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=zCfm-vWuQRk")));
                 return true;
         }
 
@@ -238,11 +248,21 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
+            int[] dateArray = getArguments().getIntArray("date");
             // Use the current date as the default date in the picker
             final Calendar c = Calendar.getInstance();
-            int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
+            int year;
+            int month;
+            int day;
+            if(dateArray != null) {
+                day = dateArray[0];
+                month = dateArray[1];
+                year = dateArray[2];
+            } else {
+                year = c.get(Calendar.YEAR);
+                month = c.get(Calendar.MONTH);
+                day = c.get(Calendar.DAY_OF_MONTH);
+            }
 
             // Create a new instance of DatePickerDialog and return it
             return new DatePickerDialog(getActivity(), this, year, month, day);
@@ -251,9 +271,9 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         public void onDateSet(DatePicker view, int year, int month, int day) {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, day);
+            Date date = calendar.getTime();
             MainActivity mainActivity = (MainActivity) getActivity();
-            mainActivity.date = calendar.getTime();
-            mainActivity.updateDateView(mainActivity.date);
+            mainActivity.displayDay(date);
         }
     }
 
@@ -305,10 +325,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         installerAdapter.notifyDataSetChanged();
     }
 
-    private void updateDateView(Date date) {
-        dateView.setText(DateFormat.format("dd.MM.yy", date));
-    }
-
     // from EntryHolder.OnEntryClickListener interface
     @Override
     public void entryClicked(View view, Entry entry) {
@@ -324,7 +340,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     public void startEditing(Entry entry) {
         clientEdit.setText(entry.client);
         workEdit.setText(entry.work);
-        updateDateView(entry.date);
         durationSpinner.setSelection(entry.duration);
         installerSpinner.setSelection(installerStrings.indexOf(entry.installer));
         cancelButton.setVisibility(View.VISIBLE);
@@ -341,7 +356,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     public void stopEditing() {
         clientEdit.setText("");
         workEdit.setText("");
-        updateDateView(new Date());
         durationSpinner.setSelection(0);
         installerSpinner.setSelection(0);
         cancelButton.setVisibility(View.GONE);
@@ -353,5 +367,12 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         dbConn.deleteEntry(entry);
         dbConn.close();
         entryListAdapter.deleteEntry(entry);
+    }
+
+    private void displayDay(Date date) {
+        this.date = date;
+        changeDateButton.setText(DateFormat.format("dd.MM.yy", date) + "  ");
+        ArrayList<Entry> entriesWithInstaller = getEntries(date);
+        entryListAdapter.setData(entriesWithInstaller);
     }
 }

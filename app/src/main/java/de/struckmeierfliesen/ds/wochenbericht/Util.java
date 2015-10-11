@@ -1,7 +1,11 @@
 package de.struckmeierfliesen.ds.wochenbericht;
 
 import android.content.Context;
+import android.text.format.DateFormat;
 import android.widget.Toast;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class Util {
     public static final String ADD_INSTALLER = "Monteur hinzufügen";
@@ -24,5 +28,19 @@ public class Util {
         int hrs = Integer.parseInt(split[0]);
         int mnts = split[1].equals("30") ? 1 : 0;
         return  hrs * 2 + mnts;
+    }
+
+    public static boolean isSameDay(Date date1, Date date2) {
+        return (date1 != null || date2 != null)
+                && DateFormat.format("dd.MM.yy", date1).equals(DateFormat.format("dd.MM.yy", date2));
+    }
+
+    public static int[] extractIntFromDate(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        int month = cal.get(Calendar.MONTH);
+        int year = cal.get(Calendar.YEAR);
+        return new int[] {day, month, year};
     }
 }

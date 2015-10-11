@@ -32,7 +32,6 @@ public class DataBaseConnection {
     };
 
     private BiMap<String, Integer> installers = HashBiMap.create();
-    private ArrayList<Entry> entries = new ArrayList<Entry>();
 
     public DataBaseConnection(Context context) {
         dbHelper = new MySQLiteHelper(context);
@@ -46,26 +45,27 @@ public class DataBaseConnection {
         dbHelper.close();
     }
 
-    private ArrayList<Entry> getEntries() {
-        if(entries.size() == 0) {
-            Cursor cursor = database.query(MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, null);
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                Entry entry = cursorToEntry(cursor);
-                if(entry != null) entries.add(entry);
-                cursor.moveToNext();
-            }
+    private ArrayList<Entry> getEntries(Date date) {
+        ArrayList<Entry> entries = new ArrayList<>();
+        // TODO maybe check if update is necessary
+        Cursor cursor = database.query(MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            Entry entry = cursorToEntry(cursor, date);
+            if(entry != null) entries.add(entry);
+            cursor.moveToNext();
         }
         Collections.reverse(entries);
         return entries;
     }
 
-    private Entry cursorToEntry(Cursor cursor) {
+    private Entry cursorToEntry(Cursor cursor, Date onlyDate) {
         if(cursor.getCount() == 0) return null;
         int id = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_ID));
         String client = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_CLIENT));
         long time = (long) cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_DATE)) * 1000;
         Date date = new Date(time);
+        if(!Util.isSameDay(date, onlyDate)) return null;
         int duration = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_DURATION));
         int installerId = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_INSTALLER_ID));
         String work = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_WORK));
@@ -81,9 +81,9 @@ public class DataBaseConnection {
         return entry;
     }
 
-    public void saveEntry(Entry entry) {
+    public int saveEntry(Entry entry) {
         ContentValues values = entryToValues(entry);
-        database.insert(MySQLiteHelper.TABLE_ENTRIES, null, values);
+        return (int) database.insert(MySQLiteHelper.TABLE_ENTRIES, null, values);
     }
 
     public int addInstaller(String installer) {
@@ -116,8 +116,8 @@ public class DataBaseConnection {
         return entries;
     }
 
-    public ArrayList<Entry> getEntriesWithInstaller() {
-        return idToInstaller(getEntries());
+    public ArrayList<Entry> getEntriesWithInstaller(Date date) {
+        return idToInstaller(getEntries(date));
     }
 
     public void editEntry(Entry entry) {

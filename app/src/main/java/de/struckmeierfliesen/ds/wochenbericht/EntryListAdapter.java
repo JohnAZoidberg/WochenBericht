@@ -38,8 +38,10 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
         return items.size();
     }
 
-    public void setData(ArrayList<Entry> items) {
-        this.items = items;
+    public void setData(ArrayList<Entry> newItems) {
+        items.clear();
+        for(Entry item : newItems) items.add(item);
+        notifyDataSetChanged();
     }
 
     public void addEntry(Entry entry, int position) {
