@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     private Date date = new Date();
     private EditText clientEdit;
     private EditText workEdit;
-    private Button cancelButton;
     private int duration = 0;
     private int installerId = 0;
     private ArrayAdapter<String> installerAdapter;
@@ -87,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         Button submitButton = (Button) findViewById(R.id.button);
         clientEdit = (EditText) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
-        cancelButton = (Button) findViewById(R.id.cancelButton);
 
         // set up number picker
         durationSpinner = (Spinner) findViewById(R.id.durationSpinner);
@@ -171,14 +169,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         entryListAdapter.setEntryClickListener(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(entryListAdapter);
-
-        // set up cancelButton
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopEditing();
-            }
-        });
     }
 
     private ArrayList<Entry> getEntries(Date date) {
@@ -342,7 +332,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         workEdit.setText(entry.work);
         durationSpinner.setSelection(entry.duration);
         installerSpinner.setSelection(installerStrings.indexOf(entry.installer));
-        cancelButton.setVisibility(View.VISIBLE);
         editingId = entry.id;
     }
 
@@ -358,7 +347,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         workEdit.setText("");
         durationSpinner.setSelection(0);
         installerSpinner.setSelection(0);
-        cancelButton.setVisibility(View.GONE);
         editingId = -1;
     }
 
