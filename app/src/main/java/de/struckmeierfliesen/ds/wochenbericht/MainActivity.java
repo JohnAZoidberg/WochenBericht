@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     private Date date = new Date();
     private EditText clientEdit;
     private EditText workEdit;
-    private int duration = 0;
-    private int installerId = 0;
+    private int duration = -1;
+    private int installerId = -1;
     private ArrayAdapter<String> installerAdapter;
     private EntryListAdapter entryListAdapter;
     private BiMap<String, Integer> installers = HashBiMap.create();
@@ -86,13 +86,17 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         Button submitButton = (Button) findViewById(R.id.button);
         clientEdit = (EditText) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
+        //addX(clientEdit);
+        //addX(workEdit);
 
         // set up number picker
         durationSpinner = (Spinner) findViewById(R.id.durationSpinner);
         ArrayList<String> durationStrings = new ArrayList<String>();
-        durationStrings.add("0:15");
+        // add dummy duration as description
+        durationStrings.add(getResources().getString(R.string.duration));
+        durationStrings.add("0:15 h");
         for(int i = 1; i <= 16; i++) {
-            durationStrings.add(Util.convertDuration(i));
+            durationStrings.add(Util.convertDuration(i) + " h");
         }
         ArrayAdapter<String> durationAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, durationStrings);
         durationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -100,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         durationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                duration = position;
+                duration = position - 1; // -1 because of the
             }
 
             @Override
@@ -149,11 +153,12 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         installerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (parent.getCount() == position + 1) {// last item
+                if (parent.getCount() == position + 1) { // last item
                     displayAddInstallerDialog();
                     installerId = position + 1;
                 } else {
-                    installerId = installers.get(installerAdapter.getItem(position));
+                    // -1 because the first element is a dummy elemnt which acts as a hint
+                    if(position != 0) installerId = installers.get(installerAdapter.getItem(position));
                 }
             }
 
@@ -171,6 +176,45 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         recyclerView.setAdapter(entryListAdapter);
     }
 
+    /*private void addX(final EditText et) {
+        String value = "";
+        et.setText(value);
+        //final Drawable x = getResources().getDrawable(R.drawable.presence_offline);//your x image, this one from standard android images looks pretty good actually
+        final Drawable x = ContextCompat.getDrawable(this, R);
+        x.setBounds(0, 0, x.getIntrinsicWidth(), x.getIntrinsicHeight());
+        et.setCompoundDrawables(null, null, value.equals("") ? null : x, null);
+        et.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (et.getCompoundDrawables()[2] == null) {
+                    return false;
+                }
+                if (event.getAction() != MotionEvent.ACTION_UP) {
+                    return false;
+                }
+                if (event.getX() > et.getWidth() - et.getPaddingRight() - x.getIntrinsicWidth()) {
+                    et.setText("");
+                    et.setCompoundDrawables(null, null, null, null);
+                }
+                return false;
+            }
+        });
+        et.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                et.setCompoundDrawables(null, null, et.getText().toString().equals("") ? null : x, null);
+            }
+
+            @Override
+            public void afterTextChanged(Editable arg0) {
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+        });
+    }*/
+
     private ArrayList<Entry> getEntries(Date date) {
         dbConn.open();
         ArrayList<Entry> entries = dbConn.getEntriesWithInstaller(date);
@@ -182,6 +226,8 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         dbConn.open();
         installers = dbConn.getInstallers();
         dbConn.close();
+        installerStrings.clear();
+        installerStrings.add(getResources().getString(R.string.installer));
         for(String s : installers.keySet()) installerStrings.add(s);
         installerStrings.add(Util.ADD_INSTALLER); // add dummy installer which acts as a button
     }
@@ -222,7 +268,11 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         String work = workEdit.getText().toString();
 
         // check if inputs are valid
-        if(client.isEmpty() || work.isEmpty() || installers.size() == 0) {
+        if(client.isEmpty()
+                || work.isEmpty()
+                //|| installers.size() == 0
+                || duration == -1
+                || installerId == -1) {
             Util.alert(this, getString(R.string.please_enter_input));
             return null;
         }
@@ -323,15 +373,15 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
 
     @Override
     public void entryLongClicked(View view, Entry entry) {
-        Util.alert(this, "Delete Entry" + entry.id);
         deleteEntry(entry);
     }
 
     public void startEditing(Entry entry) {
         clientEdit.setText(entry.client);
         workEdit.setText(entry.work);
-        durationSpinner.setSelection(entry.duration);
-        installerSpinner.setSelection(installerStrings.indexOf(entry.installer));
+        durationSpinner.setSelection(entry.duration + 1); // +1 because of dummy duration which acts as placeholder
+        int position = installerStrings.indexOf(entry.installer);
+        installerSpinner.setSelection(position); // +1 because of dummy duration which acts as placeholder
         editingId = entry.id;
     }
 
