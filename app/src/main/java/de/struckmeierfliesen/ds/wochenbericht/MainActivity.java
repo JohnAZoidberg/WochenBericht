@@ -395,8 +395,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
     public void stopEditing() {
         clientEdit.setText("");
         workEdit.setText("");
-        durationSpinner.setSelection(0);
-        installerSpinner.setSelection(0);
         editingId = -1;
     }
 
