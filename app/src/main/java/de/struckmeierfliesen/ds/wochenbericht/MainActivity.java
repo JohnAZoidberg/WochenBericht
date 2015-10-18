@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int SET_ENTRY_DATE = 0;
     private static final int SET_SHOWN_DATE = 1;
+    private static final int NOT_EDITING = -1;
     private EditText clientEdit;
     private EditText workEdit;
     private int duration = -1;
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private DemoCollectionPagerAdapter mDemoCollectionPagerAdapter;
 
     // -1 means editing is off and if editingId is on this variable holds the id of the entry being edited
-    private int editingId = -1;
+    private int editingId = NOT_EDITING;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Entry entry = extractDataFromInputs();
                 if(entry != null) {
-                    if(editingId == -1)
+                    if(editingId == NOT_EDITING)
                         addEntry(entry);
                     else
                         editEntry(entry);
@@ -182,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                editingId = NOT_EDITING;
                 setDate(Util.addToDate(date, lastPosition - position));
                 lastPosition = position;
             }
@@ -411,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
         clientEdit.setText("");
         workEdit.setText("");
         saveButton.setText(getString(R.string.add));
-        editingId = -1;
+        editingId = NOT_EDITING;
     }
 
     private void setDate(Date date) {
