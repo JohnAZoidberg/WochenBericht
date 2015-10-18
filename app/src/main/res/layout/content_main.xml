@@ -11,21 +11,19 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main"
     tools:context=".MainActivity"
-    android:background="@android:color/white">
+    android:background="@color/colorPrimary">
 
     <de.struckmeierfliesen.ds.wochenbericht.SelectAgainSpinner
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/spinner"
         android:textSize="@dimen/medium_text"
-        android:layout_alignParentTop="true"
+        android:minHeight="48dp"
+        android:layout_above="@+id/editWork"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_toLeftOf="@+id/durationSpinner"
-        android:layout_toStartOf="@+id/durationSpinner"
-        android:layout_alignBottom="@+id/durationSpinner"
-        android:minHeight="48dp"
-        android:backgroundTint="@color/colorPrimary" />
+        android:layout_toLeftOf="@+id/button"
+        android:layout_toStartOf="@+id/button" />
 
     <Spinner
         android:layout_width="wrap_content"
@@ -33,15 +31,14 @@
         android:inputType="time"
         android:textSize="@dimen/medium_text"
         android:id="@+id/durationSpinner"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
         android:hint="@string/duration"
         android:enabled="false"
         android:minHeight="48dp"
-        android:layout_alignLeft="@+id/button"
-        android:layout_alignStart="@+id/button"
-        android:backgroundTint="@color/colorPrimary" />
+        android:layout_alignBottom="@+id/spinner"
+        android:layout_toRightOf="@+id/spinner"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/spinner" />
 
     <de.struckmeierfliesen.ds.wochenbericht.ClearableEditText
         android:layout_width="wrap_content"
@@ -51,15 +48,14 @@
         android:hint="@string/work_description"
         android:minLines="3"
         android:textSize="@dimen/medium_text"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
+        android:gravity="top"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/spinner"
-        android:gravity="top"
-        android:backgroundTint="@color/colorPrimary" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/editClient" />
 
-    <de.struckmeierfliesen.ds.wochenbericht.
+    <de.struckmeierfliesen.ds.wochenbericht.ClearableEditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
@@ -67,15 +63,12 @@
         android:textSize="@dimen/medium_text"
         android:id="@+id/editClient"
         android:hint="@string/client"
-        android:layout_below="@+id/editWork"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/button"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_toLeftOf="@+id/button"
-        android:layout_toStartOf="@+id/button"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="@color/colorPrimary" />
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp" />
 
     <Button
         android:layout_width="wrap_content"
@@ -84,28 +77,16 @@
         android:id="@+id/button"
         android:layout_alignBottom="@+id/editClient"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:backgroundTint="@color/colorPrimary" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Einträge"
-        android:id="@+id/listTitle"
-        android:layout_below="@+id/editClient"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:gravity="center"
-        android:textSize="18sp" />
+        android:layout_alignParentEnd="true" />
 
     <android.support.v4.view.ViewPager
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_below="@+id/listTitle" />
+        android:background="@drawable/border_bottom_primary"
+        android:layout_above="@+id/spinner" />
 
 </RelativeLayout>

@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                     else
                         editEntry(entry);
                 }
-                stopEditing();
+                stopEditing(entry != null);
             }
         });
 
@@ -160,14 +160,6 @@ public class MainActivity extends AppCompatActivity {
         });
         installerSpinner.setSelection(0);
 
-        /*//set up RecyclerView
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.listView);
-        entryListAdapter = new EntryListAdapter(getEntries(date));
-        entryListAdapter.setEntryClickListener(this);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(entryListAdapter);*/
-
-
         // ViewPager and its adapters use support library
         // fragments, so use getSupportFragmentManager.
         mDemoCollectionPagerAdapter = new DemoCollectionPagerAdapter(getSupportFragmentManager());
@@ -183,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                editingId = NOT_EDITING;
+                stopEditing(false);
                 setDate(Util.addToDate(date, lastPosition - position));
                 lastPosition = position;
             }
@@ -409,9 +401,11 @@ public class MainActivity extends AppCompatActivity {
         getCurrentFragment().editEntry(entry);
     }
 
-    private void stopEditing() {
-        clientEdit.setText("");
-        workEdit.setText("");
+    private void stopEditing(boolean clearEdits) {
+        if(clearEdits) {
+            clientEdit.setText("");
+            workEdit.setText("");
+        }
         saveButton.setText(getString(R.string.add));
         editingId = NOT_EDITING;
     }

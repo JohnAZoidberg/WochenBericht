@@ -17,6 +17,7 @@ package de.struckmeierfliesen.ds.wochenbericht;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,6 +36,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  */
 public class ClearableEditText extends EditText implements OnTouchListener, OnFocusChangeListener, TextWatcherAdapter.TextWatcherListener {
 
+
     public interface Listener {
         void didClearText();
     }
@@ -45,6 +47,7 @@ public class ClearableEditText extends EditText implements OnTouchListener, OnFo
 
     private Drawable xD;
     private Listener listener;
+    private static double DRAWABLE_MULTIPLIER = 1.5;
 
     public ClearableEditText(Context context) {
         super(context);
@@ -77,7 +80,7 @@ public class ClearableEditText extends EditText implements OnTouchListener, OnFo
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if (getCompoundDrawables()[2] != null) {
-            boolean tappedX = event.getX() > (getWidth() - getPaddingRight() - xD.getIntrinsicWidth());
+            boolean tappedX = event.getX() > (getWidth() - getPaddingRight() - (int) (xD.getIntrinsicWidth() * DRAWABLE_MULTIPLIER));
             if (tappedX) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     setText("");
@@ -116,9 +119,9 @@ public class ClearableEditText extends EditText implements OnTouchListener, OnFo
     private void init() {
         xD = getCompoundDrawables()[2];
         if (xD == null) {
-            xD = getResources().getDrawable(android.R.drawable.presence_offline);
+            xD = ContextCompat.getDrawable(getContext(), android.R.drawable.presence_offline);
         }
-        xD.setBounds(0, 0, xD.getIntrinsicWidth(), xD.getIntrinsicHeight());
+        xD.setBounds(0, 0, (int) (xD.getIntrinsicWidth() * DRAWABLE_MULTIPLIER), (int) (xD.getIntrinsicHeight() * DRAWABLE_MULTIPLIER));
         setClearIconVisible(false);
         super.setOnTouchListener(this);
         super.setOnFocusChangeListener(this);
