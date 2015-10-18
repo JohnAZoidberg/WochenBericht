@@ -10,5 +10,6 @@
     <string name="duration">Dauer</string>
     <string name="save">Speichern</string>
     <string name="please_enter_input">Bitte etwas eingeben.</string>
-    <string name="installer">Monteur</string>
+    <string name="installer">Geselle</string>
+    <string name="only_present">Du kannst kein Datum in der Zukunft auswählen.</string>
 </resources>

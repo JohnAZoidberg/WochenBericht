@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class Util {
     public static final String ADD_INSTALLER = "Monteur hinzufügen";
@@ -42,5 +43,17 @@ public class Util {
         int month = cal.get(Calendar.MONTH);
         int year = cal.get(Calendar.YEAR);
         return new int[] {day, month, year};
+    }
+
+    public static Date addToDate(Date date, int value) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.DATE, value);
+        return c.getTime();
+    }
+
+    public static int getDayDifference(Date date1, Date date2) {
+        long diffInMillies = date1.getTime() - date2.getTime();
+        return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 }

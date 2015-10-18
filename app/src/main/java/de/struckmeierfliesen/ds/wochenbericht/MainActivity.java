@@ -7,19 +7,22 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.text.format.DateFormat;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -35,24 +38,26 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements EntryListAdapter.OnEntryClickListener {
+public class MainActivity extends AppCompatActivity {
 
     private static final int SET_ENTRY_DATE = 0;
     private static final int SET_SHOWN_DATE = 1;
-    private Date date = new Date();
     private EditText clientEdit;
     private EditText workEdit;
     private int duration = -1;
     private int installerId = -1;
     private ArrayAdapter<String> installerAdapter;
-    private EntryListAdapter entryListAdapter;
     private BiMap<String, Integer> installers = HashBiMap.create();
     private ArrayList<String> installerStrings = new ArrayList<String>(); // TODO use BiMap instead
     private SelectAgainSpinner installerSpinner;
     private Spinner durationSpinner;
     private TextView changeDateButton;
-
+    private Date date = new Date();
     private DataBaseConnection dbConn;
+    private Button saveButton;
+
+    private ViewPager mViewPager;
+    private DemoCollectionPagerAdapter mDemoCollectionPagerAdapter;
 
     // -1 means editing is off and if editingId is on this variable holds the id of the entry being edited
     private int editingId = -1;
@@ -83,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         });
 
         // findViews
-        Button submitButton = (Button) findViewById(R.id.button);
+        saveButton = (Button) findViewById(R.id.button);
         clientEdit = (EditText) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
         //addX(clientEdit);
@@ -113,8 +118,8 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             }
         });
 
-        // set up submitButton
-        submitButton.setOnClickListener(new View.OnClickListener() {
+        // set up saveButton
+        saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Entry entry = extractDataFromInputs();
@@ -125,20 +130,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
                         editEntry(entry);
                 }
                 stopEditing();
-            }
-        });
-
-        // set up FAB
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String displayString = "";
-                ArrayList<Entry> entries = getEntries(date);
-                for(Entry entry : entries) {
-                    displayString += entry.toString() + "\n";
-                }
-                Util.alert(view.getContext(), displayString);
             }
         });
 
@@ -168,12 +159,47 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         });
         installerSpinner.setSelection(0);
 
-        //set up RecyclerView
+        /*//set up RecyclerView
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.listView);
         entryListAdapter = new EntryListAdapter(getEntries(date));
         entryListAdapter.setEntryClickListener(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(entryListAdapter);
+        recyclerView.setAdapter(entryListAdapter);*/
+
+
+        // ViewPager and its adapters use support library
+        // fragments, so use getSupportFragmentManager.
+        mDemoCollectionPagerAdapter = new DemoCollectionPagerAdapter(getSupportFragmentManager());
+        mViewPager = (ViewPager) findViewById(R.id.listView);
+        mViewPager.setAdapter(mDemoCollectionPagerAdapter);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            int lastPosition = 0;
+
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                setDate(Util.addToDate(date, lastPosition - position));
+                lastPosition = position;
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
+    }
+
+    private EntryListFragment getCurrentFragment() {
+        return mDemoCollectionPagerAdapter.getRegisteredFragment(mViewPager.getCurrentItem());
+    }
+
+    public Date getDate() {
+        return date;
     }
 
     /*private void addX(final EditText et) {
@@ -215,13 +241,6 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         });
     }*/
 
-    private ArrayList<Entry> getEntries(Date date) {
-        dbConn.open();
-        ArrayList<Entry> entries = dbConn.getEntriesWithInstaller(date);
-        dbConn.close();
-        return entries;
-    }
-
     private void getInstallers() {
         dbConn.open();
         installers = dbConn.getInstallers();
@@ -236,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         dbConn.open();
         if(entry != null) {
             entry.id = dbConn.saveEntry(entry);
-           entryListAdapter.addEntry(entry, 0);
+            getCurrentFragment().addEntry(entry, 0);
         }
         dbConn.close();
     }
@@ -277,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             return null;
         }
 
-        Entry entry = new Entry(client, this.date, duration, installerId, work); // TODO ID NEEDS TO BE SET
+        Entry entry = new Entry(client, this.date, duration, installerId, work);
         entry.installer = installers.inverse().get(installerId);
         entry.id = editingId;
         return entry;
@@ -308,12 +327,18 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
             return new DatePickerDialog(getActivity(), this, year, month, day);
         }
 
+        @Override
         public void onDateSet(DatePicker view, int year, int month, int day) {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, day);
             Date date = calendar.getTime();
-            MainActivity mainActivity = (MainActivity) getActivity();
-            mainActivity.displayDay(date);
+            int dayDifference = Util.getDayDifference(new Date(), date);
+            if(dayDifference >= 0) {
+                MainActivity mainActivity = (MainActivity) getActivity();
+                mainActivity.mViewPager.setCurrentItem(dayDifference);
+            } else {
+                Util.alert(getContext(), getResources().getString(R.string.only_present));
+            }
         }
     }
 
@@ -365,50 +390,74 @@ public class MainActivity extends AppCompatActivity implements EntryListAdapter.
         installerAdapter.notifyDataSetChanged();
     }
 
-    // from EntryHolder.OnEntryClickListener interface
-    @Override
-    public void entryClicked(View view, Entry entry) {
-        startEditing(entry);
-    }
-
-    @Override
-    public void entryLongClicked(View view, Entry entry) {
-        deleteEntry(entry);
-    }
-
     public void startEditing(Entry entry) {
         clientEdit.setText(entry.client);
         workEdit.setText(entry.work);
+        saveButton.setText(getString(R.string.save));
         durationSpinner.setSelection(entry.duration + 1); // +1 because of dummy duration which acts as placeholder
         int position = installerStrings.indexOf(entry.installer);
         installerSpinner.setSelection(position); // +1 because of dummy duration which acts as placeholder
         editingId = entry.id;
     }
 
-    public void editEntry(Entry entry) {
+    private void editEntry(Entry entry) {
         dbConn.open();
         dbConn.editEntry(entry);
         dbConn.close();
-        entryListAdapter.editEntry(entry);
+        getCurrentFragment().editEntry(entry);
     }
 
-    public void stopEditing() {
+    private void stopEditing() {
         clientEdit.setText("");
         workEdit.setText("");
+        saveButton.setText(getString(R.string.add));
         editingId = -1;
     }
 
-    public void deleteEntry(Entry entry) {
-        dbConn.open();
-        dbConn.deleteEntry(entry);
-        dbConn.close();
-        entryListAdapter.deleteEntry(entry);
-    }
-
-    private void displayDay(Date date) {
+    private void setDate(Date date) {
         this.date = date;
         changeDateButton.setText(DateFormat.format("dd.MM.yy", date) + "  ");
-        ArrayList<Entry> entriesWithInstaller = getEntries(date);
-        entryListAdapter.setData(entriesWithInstaller);
+    }
+
+
+
+    // Since this is an object collection, use a FragmentStatePagerAdapter,
+    // and NOT a FragmentPagerAdapter.
+    public class DemoCollectionPagerAdapter extends FragmentStatePagerAdapter {
+        SparseArray<EntryListFragment> registeredFragments = new SparseArray<EntryListFragment>();
+
+        public DemoCollectionPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int i) {
+            return new EntryListFragment();
+        }
+
+        @Override
+        public int getCount() {
+            return 100;
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            EntryListFragment fragment = (EntryListFragment) super.instantiateItem(container, position);
+            Bundle args = new Bundle();
+            args.putInt("position", position);
+            fragment.setArguments(args);
+            registeredFragments.put(position, fragment);
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            registeredFragments.remove(position);
+            super.destroyItem(container, position, object);
+        }
+
+        public EntryListFragment getRegisteredFragment(int position) {
+            return registeredFragments.get(position);
+        }
     }
 }

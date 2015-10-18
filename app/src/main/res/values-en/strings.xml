@@ -12,4 +12,5 @@
     <string name="please_enter_input">Please fill all fields</string>
     <string name="save">Save</string>
     <string name="work_description">Work description</string>
+    <string name="only_present">You cannot select a date which lies in the future.</string>
 </resources>

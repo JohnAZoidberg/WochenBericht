@@ -24,7 +24,8 @@
         android:layout_toLeftOf="@+id/durationSpinner"
         android:layout_toStartOf="@+id/durationSpinner"
         android:layout_alignBottom="@+id/durationSpinner"
-        android:minHeight="48dp" />
+        android:minHeight="48dp"
+        android:backgroundTint="@color/colorPrimary" />
 
     <Spinner
         android:layout_width="wrap_content"
@@ -39,7 +40,8 @@
         android:enabled="false"
         android:minHeight="48dp"
         android:layout_alignLeft="@+id/button"
-        android:layout_alignStart="@+id/button" />
+        android:layout_alignStart="@+id/button"
+        android:backgroundTint="@color/colorPrimary" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -54,7 +56,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/spinner"
-        android:gravity="top" />
+        android:gravity="top"
+        android:backgroundTint="@color/colorPrimary" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -71,24 +74,18 @@
         android:layout_toStartOf="@+id/button"
         android:layout_marginRight="4dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/colorPrimary" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/save"
+        android:text="@string/add"
         android:id="@+id/button"
         android:layout_alignBottom="@+id/editClient"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_below="@+id/listTitle" />
+        android:backgroundTint="@color/colorPrimary" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -102,5 +99,13 @@
         android:layout_alignParentEnd="true"
         android:gravity="center"
         android:textSize="18sp" />
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/listTitle" />
 
 </RelativeLayout>
