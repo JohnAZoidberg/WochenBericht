@@ -12,4 +12,7 @@
     <string name="please_enter_input">Bitte etwas eingeben.</string>
     <string name="installer">Geselle</string>
     <string name="only_present">Du kannst kein Datum in der Zukunft auswählen.</string>
+    <string name="tradeschool">Berufsschule</string>
+    <string name="name">Name</string>
+    <string name="firstName">Vorname</string>
 </resources>
