@@ -81,6 +81,6 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
 
     @Override
     public void entryLongClicked(View view, Entry entry) {
-        deleteEntry(entry);
+        mainActivity.deleteEntry(entry);
     }
 }

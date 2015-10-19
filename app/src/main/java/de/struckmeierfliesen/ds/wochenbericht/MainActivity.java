@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private Button saveButton;
 
     private ViewPager mViewPager;
-    private DemoCollectionPagerAdapter mDemoCollectionPagerAdapter;
+    private DayAdapter mDemoCollectionPagerAdapter;
 
     // -1 means editing is off and if editingId is on this variable holds the id of the entry being edited
     private int editingId = NOT_EDITING;
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     displayAddInstallerDialog();
                     installerId = position + 1;
                 } else {
-                    // -1 because the first element is a dummy elemnt which acts as a hint
+                    // -1 because the first element is a dummy element which acts as a hint
                     if (position != 0)
                         installerId = installers.get(installerAdapter.getItem(position));
                 }
@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
         });
         installerSpinner.setSelection(0);
 
-        mDemoCollectionPagerAdapter = new DemoCollectionPagerAdapter(getSupportFragmentManager());
+        mDemoCollectionPagerAdapter = new DayAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.listView);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -268,6 +268,10 @@ public class MainActivity extends AppCompatActivity {
         durationSpinner.setSelection(duration + 1);// +1 because of dummy duration which acts as placeholder);
     }
 
+    public void deleteEntry(Entry entry) {
+        askForDeleteConfirmation(entry);
+    }
+
     public static class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
         @NonNull
@@ -342,6 +346,32 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    public void askForDeleteConfirmation(final Entry entry) {
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Wirklich löschen?")
+                .setPositiveButton("Ja", null)
+                .setNegativeButton("Nein", null).create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+
+            @Override
+            public void onShow(DialogInterface d) {
+
+                Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                b.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View view) {
+                        Util.alert(MainActivity.this, "delete");
+                        getCurrentFragment().deleteEntry(entry);
+                        dialog.dismiss();
+                    }
+                });
+            }
+        });
+        dialog.show();
+    }
+
     private void addInstaller(String installer) {
         dbConn.open();
         dbConn.addInstaller(installer);
@@ -394,12 +424,10 @@ public class MainActivity extends AppCompatActivity {
         installerSpinner.setSelection(installerStrings.indexOf(installers.inverse().get(installerId)));
     }
 
-    // Since this is an object collection, use a FragmentStatePagerAdapter,
-    // and NOT a FragmentPagerAdapter.
-    public class DemoCollectionPagerAdapter extends FragmentStatePagerAdapter {
+    public class DayAdapter extends FragmentStatePagerAdapter {
         SparseArray<EntryListFragment> registeredFragments = new SparseArray<EntryListFragment>();
 
-        public DemoCollectionPagerAdapter(FragmentManager fm) {
+        public DayAdapter(FragmentManager fm) {
             super(fm);
         }
 
