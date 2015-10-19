@@ -51,6 +51,7 @@ public class DataBaseConnection {
         Cursor cursor = database.query(MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, null);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
+            // TODO check date earlier in query
             Entry entry = cursorToEntry(cursor, date);
             if(entry != null) entries.add(entry);
             cursor.moveToNext();
@@ -155,6 +156,6 @@ public class DataBaseConnection {
         Cursor cursor = database.query(
                 MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, MySQLiteHelper.COLUMN_DATE + " DESC", "1");
         cursor.moveToFirst();
-        return cursorToEntry(cursor, null);
+        return (cursor.getCount() > 0) ? cursorToEntry(cursor, null) : null;
     }
 }

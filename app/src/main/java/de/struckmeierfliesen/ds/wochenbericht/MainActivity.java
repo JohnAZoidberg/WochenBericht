@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
     // -1 means editing is off and if editingId is on this variable holds the id of the entry being edited
     private int editingId = NOT_EDITING;
+    private Entry avgEntry = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,14 +92,15 @@ public class MainActivity extends AppCompatActivity {
         saveButton = (Button) findViewById(R.id.button);
         clientEdit = (EditText) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
-        //addX(clientEdit);
-        //addX(workEdit);
+
+        // preset installer and duration
+        avgEntry = loadAverageEntry();
 
         // set up number picker
         durationSpinner = (Spinner) findViewById(R.id.durationSpinner);
         ArrayList<String> durationStrings = new ArrayList<String>();
         // add dummy duration as description
-        durationStrings.add(getResources().getString(R.string.duration));
+        if(avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
         durationStrings.add("0:15 h");
         for(int i = 1; i <= 16; i++) {
             durationStrings.add(Util.convertDuration(i) + " h");
@@ -109,7 +111,9 @@ public class MainActivity extends AppCompatActivity {
         durationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                duration = position - 1; // -1 because of the
+                // +1 because the first element is a dummy element which acts as a hint
+                // if there have not been previous entries (avgEntry == null)
+                duration = position - ((avgEntry == null) ? 1 : 0);
             }
 
             @Override
@@ -117,14 +121,15 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        if(avgEntry != null) setDuration(avgEntry.duration);
 
         // set up saveButton
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Entry entry = extractDataFromInputs();
-                if(entry != null) {
-                    if(editingId == NOT_EDITING)
+                if (entry != null) {
+                    if (editingId == NOT_EDITING)
                         addEntry(entry);
                     else
                         editEntry(entry);
@@ -136,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         // set up Installer Spinner
         installerSpinner = (SelectAgainSpinner) findViewById(R.id.spinner);
 
-        getInstallers();
+        getInstallers(avgEntry == null); // TODO if theres no installers and avgEntry == null there wont be any hint
 
         installerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, installerStrings);
         installerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -146,9 +151,10 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (parent.getCount() == position + 1) { // last item
                     displayAddInstallerDialog();
-                    installerId = position + 1;
+                    // +1 because the first element is a dummy element which acts as a hint
+                    // if there have not been previous entries (avgEntry == null)
+                    installerId = position + ((avgEntry == null) ? 1 : 0);
                 } else {
-                    // -1 because the first element is a dummy element which acts as a hint
                     if (position != 0)
                         installerId = installers.get(installerAdapter.getItem(position));
                 }
@@ -158,7 +164,8 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
-        installerSpinner.setSelection(0);
+        //TODO installerSpinner.setSelection(0);
+        if(avgEntry != null) setInstallerById(avgEntry.installerId);
 
         mDemoCollectionPagerAdapter = new DayAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.listView);
@@ -183,10 +190,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-        Entry avgEntry = loadAverageEntry();
-        setInstallerById(avgEntry.installerId);
-        setDuration(avgEntry.duration);
     }
 
     @Override
@@ -224,12 +227,12 @@ public class MainActivity extends AppCompatActivity {
         return date;
     }
 
-    private void getInstallers() {
+    private void getInstallers(boolean addDummy) {
         dbConn.open();
         installers = dbConn.getInstallers();
         dbConn.close();
         installerStrings.clear();
-        installerStrings.add(getResources().getString(R.string.installer));
+        if(addDummy) installerStrings.add(getResources().getString(R.string.installer));
         for(String s : installers.keySet()) installerStrings.add(s);
         installerStrings.add(Util.ADD_INSTALLER); // add dummy installer which acts as a button
     }
@@ -265,7 +268,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setDuration(int duration) {
-        durationSpinner.setSelection(duration + 1);// +1 because of dummy duration which acts as placeholder);
+        // +1 because of dummy duration which acts as placeholder
+        // if there have not been previous entries (avgEntry == null)
+        durationSpinner.setSelection(duration + ((avgEntry == null) ? 1 : 0));
     }
 
     public void deleteEntry(Entry entry) {
