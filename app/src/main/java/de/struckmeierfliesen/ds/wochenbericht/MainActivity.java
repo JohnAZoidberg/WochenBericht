@@ -150,7 +150,8 @@ public class MainActivity extends AppCompatActivity {
                     installerId = position + 1;
                 } else {
                     // -1 because the first element is a dummy elemnt which acts as a hint
-                    if(position != 0) installerId = installers.get(installerAdapter.getItem(position));
+                    if (position != 0)
+                        installerId = installers.get(installerAdapter.getItem(position));
                 }
             }
 
@@ -160,8 +161,6 @@ public class MainActivity extends AppCompatActivity {
         });
         installerSpinner.setSelection(0);
 
-        // ViewPager and its adapters use support library
-        // fragments, so use getSupportFragmentManager.
         mDemoCollectionPagerAdapter = new DemoCollectionPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.listView);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);
@@ -186,6 +185,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Entry avgEntry = loadAverageEntry();
+        setInstallerById(avgEntry.installerId);
+        setDuration(avgEntry.duration);
+    }
+
+    private Entry loadAverageEntry() {
+        dbConn.open();
+        Entry entry = dbConn.loadAverageEntry();
+        dbConn.close();
+        return entry;
     }
 
     private EntryListFragment getCurrentFragment() {
@@ -296,6 +305,10 @@ public class MainActivity extends AppCompatActivity {
         return entry;
     }
 
+    public void setDuration(int duration) {
+        durationSpinner.setSelection(duration + 1);// +1 because of dummy duration which acts as placeholder);
+    }
+
     public static class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
         @NonNull
@@ -388,9 +401,8 @@ public class MainActivity extends AppCompatActivity {
         clientEdit.setText(entry.client);
         workEdit.setText(entry.work);
         saveButton.setText(getString(R.string.save));
-        durationSpinner.setSelection(entry.duration + 1); // +1 because of dummy duration which acts as placeholder
-        int position = installerStrings.indexOf(entry.installer);
-        installerSpinner.setSelection(position); // +1 because of dummy duration which acts as placeholder
+        setDuration(entry.duration);
+        setInstaller(entry.installer);
         editingId = entry.id;
     }
 
@@ -415,7 +427,13 @@ public class MainActivity extends AppCompatActivity {
         changeDateButton.setText(DateFormat.format("dd.MM.yy", date) + "  ");
     }
 
+    public void setInstaller(String name) {
+        installerSpinner.setSelection(installerStrings.indexOf(name));
+    }
 
+    public void setInstallerById(int installerId) {
+        installerSpinner.setSelection(installerStrings.indexOf(installers.inverse().get(installerId)));
+    }
 
     // Since this is an object collection, use a FragmentStatePagerAdapter,
     // and NOT a FragmentPagerAdapter.

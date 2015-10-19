@@ -68,6 +68,10 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
         notifyDataSetChanged();
     }
 
+    public ArrayList<Entry> getData() {
+        return items;
+    }
+
     public interface OnEntryClickListener {
         public void entryClicked(View view, Entry entry);
         public void entryLongClicked(View view, Entry entry);

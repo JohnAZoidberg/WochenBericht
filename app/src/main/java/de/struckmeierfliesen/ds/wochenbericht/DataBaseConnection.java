@@ -55,6 +55,7 @@ public class DataBaseConnection {
             if(entry != null) entries.add(entry);
             cursor.moveToNext();
         }
+        cursor.close();
         Collections.reverse(entries);
         return entries;
     }
@@ -65,7 +66,7 @@ public class DataBaseConnection {
         String client = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_CLIENT));
         long time = (long) cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_DATE)) * 1000;
         Date date = new Date(time);
-        if(!Util.isSameDay(date, onlyDate)) return null;
+        if(onlyDate != null && !Util.isSameDay(date, onlyDate)) return null;
         int duration = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_DURATION));
         int installerId = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_INSTALLER_ID));
         String work = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_WORK));
@@ -108,12 +109,19 @@ public class DataBaseConnection {
     }
 
     public ArrayList<Entry> idToInstaller(ArrayList<Entry> entries) {
-        BiMap<Integer, String> biIstallers = getInstallers().inverse();
+        BiMap<Integer, String> biInstallers = getInstallers().inverse();
 
         for(Entry entry : entries) {
-            entry.installer = biIstallers.get(entry.installerId);
+            entry.installer = biInstallers.get(entry.installerId);
         }
         return entries;
+    }
+
+    // not very efficient
+    public Entry idToInstaller(Entry entry) {
+        ArrayList<Entry> entryList = new ArrayList<Entry>();
+        entryList.add(entry);
+        return idToInstaller(entryList).get(0);
     }
 
     public ArrayList<Entry> getEntriesWithInstaller(Date date) {
@@ -140,5 +148,13 @@ public class DataBaseConnection {
     // return true if exactly one row was removed
     public boolean deleteEntry(Entry entry) {
         return database.delete(MySQLiteHelper.TABLE_ENTRIES, MySQLiteHelper.COLUMN_ID + "=" + entry.id, null) == 1;
+    }
+
+    public Entry loadAverageEntry() {
+        // actually i'm just going to load the last entry
+        Cursor cursor = database.query(
+                MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, MySQLiteHelper.COLUMN_DATE + " DESC", "1");
+        cursor.moveToFirst();
+        return cursorToEntry(cursor, null);
     }
 }

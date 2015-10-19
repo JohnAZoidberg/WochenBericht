@@ -17,8 +17,6 @@ import java.util.Date;
 public class EntryListFragment extends Fragment implements EntryListAdapter.OnEntryClickListener {
     private MainActivity mainActivity;
 
-    public static final String ARG_OBJECT = "object";
-
     private EntryListAdapter entryListAdapter;
     private Date date = new Date();
     private DataBaseConnection dbConn;
@@ -39,7 +37,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
 
         // set up RecyclerView
         RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.entriesList);
-        entryListAdapter = new EntryListAdapter(getEntries(date));
+        entryListAdapter = new EntryListAdapter(loadEntries(date));
         entryListAdapter.setEntryClickListener(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(entryListAdapter);
@@ -47,7 +45,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         return rootView;
     }
 
-    private ArrayList<Entry> getEntries(Date date) {
+    private ArrayList<Entry> loadEntries(Date date) {
         dbConn.open();
         ArrayList<Entry> entries = dbConn.getEntriesWithInstaller(date);
         dbConn.close();
@@ -56,7 +54,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
 
     public void updateEntries(Date date) {
         this.date = date;
-        ArrayList<Entry> entriesWithInstaller = getEntries(date);
+        ArrayList<Entry> entriesWithInstaller = loadEntries(date);
         entryListAdapter.setData(entriesWithInstaller);
     }
 
