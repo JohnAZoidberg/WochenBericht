@@ -4,7 +4,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -190,6 +189,26 @@ public class MainActivity extends AppCompatActivity {
         setDuration(avgEntry.duration);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // own methods
+
     private Entry loadAverageEntry() {
         dbConn.open();
         Entry entry = dbConn.loadAverageEntry();
@@ -204,45 +223,6 @@ public class MainActivity extends AppCompatActivity {
     public Date getDate() {
         return date;
     }
-
-    /*private void addX(final EditText et) {
-        String value = "";
-        et.setText(value);
-        //final Drawable x = getResources().getDrawable(R.drawable.presence_offline);//your x image, this one from standard android images looks pretty good actually
-        final Drawable x = ContextCompat.getDrawable(this, R);
-        x.setBounds(0, 0, x.getIntrinsicWidth(), x.getIntrinsicHeight());
-        et.setCompoundDrawables(null, null, value.equals("") ? null : x, null);
-        et.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (et.getCompoundDrawables()[2] == null) {
-                    return false;
-                }
-                if (event.getAction() != MotionEvent.ACTION_UP) {
-                    return false;
-                }
-                if (event.getX() > et.getWidth() - et.getPaddingRight() - x.getIntrinsicWidth()) {
-                    et.setText("");
-                    et.setCompoundDrawables(null, null, null, null);
-                }
-                return false;
-            }
-        });
-        et.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                et.setCompoundDrawables(null, null, et.getText().toString().equals("") ? null : x, null);
-            }
-
-            @Override
-            public void afterTextChanged(Editable arg0) {
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-        });
-    }*/
 
     private void getInstallers() {
         dbConn.open();
@@ -262,27 +242,6 @@ public class MainActivity extends AppCompatActivity {
         }
         dbConn.close();
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.action_settings:
-                //Util.alert(this, "So true, amenakoi!!");
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=zCfm-vWuQRk")));
-                return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    // own methods
 
     private Entry extractDataFromInputs() {
         // extract inputs

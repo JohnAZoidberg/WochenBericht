@@ -47,7 +47,7 @@ public class ClearableEditText extends EditText implements OnTouchListener, OnFo
 
     private Drawable xD;
     private Listener listener;
-    private static double DRAWABLE_MULTIPLIER = 1.5;
+    private static double DRAWABLE_MULTIPLIER = 1;
 
     public ClearableEditText(Context context) {
         super(context);
@@ -119,7 +119,7 @@ public class ClearableEditText extends EditText implements OnTouchListener, OnFo
     private void init() {
         xD = getCompoundDrawables()[2];
         if (xD == null) {
-            xD = ContextCompat.getDrawable(getContext(), android.R.drawable.presence_offline);
+            xD = ContextCompat.getDrawable(getContext(), R.drawable.ic_clear_black_24dp);//android.R.drawable.presence_offline);
         }
         xD.setBounds(0, 0, (int) (xD.getIntrinsicWidth() * DRAWABLE_MULTIPLIER), (int) (xD.getIntrinsicHeight() * DRAWABLE_MULTIPLIER));
         setClearIconVisible(false);
