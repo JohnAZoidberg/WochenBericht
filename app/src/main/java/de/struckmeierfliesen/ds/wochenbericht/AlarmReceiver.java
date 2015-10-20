@@ -33,7 +33,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder mNotifyBuilder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.drawable.azubilog_small_simpleblue_eckig_white)
+                .setSmallIcon(R.drawable.azubilog_small_white)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
                         R.drawable.azubilog_small_simpleblue_eckig))
                 .setContentTitle(context.getResources().getString(R.string.app_name))
