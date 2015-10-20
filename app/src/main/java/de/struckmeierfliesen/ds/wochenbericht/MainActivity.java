@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private Date date = new Date();
     private DataBaseConnection dbConn;
     private Button saveButton;
+    private TextView totalDurationView;
 
     private ViewPager mViewPager;
     private DayAdapter mDemoCollectionPagerAdapter;
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         saveButton = (Button) findViewById(R.id.button);
         clientEdit = (EditText) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
+        totalDurationView = (TextView) findViewById(R.id.totalHours);
 
         // preset installer and duration
         avgEntry = loadAverageEntry();
@@ -180,6 +182,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                int hours = getCurrentFragment().getTotalHours();
+                setTotalDuration(hours);
+
                 stopEditing(false);
                 setDate(Util.addDays(date, lastPosition - position));
                 lastPosition = position;
@@ -277,6 +282,12 @@ public class MainActivity extends AppCompatActivity {
         askForDeleteConfirmation(entry);
     }
 
+    public void setTotalDuration(int durationCode) {
+        String duration = Util.convertDuration(durationCode);
+        totalDurationView.setText(getResources().getQuantityString(
+                R.plurals.xHours, duration.equals("1:00") ? 1 : 2, duration));
+    }
+
     public static class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
         @NonNull
@@ -367,7 +378,6 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View view) {
-                        Util.alert(MainActivity.this, "delete");
                         getCurrentFragment().deleteEntry(entry);
                         dialog.dismiss();
                     }

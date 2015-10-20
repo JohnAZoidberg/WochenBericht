@@ -16,6 +16,7 @@ public class Util {
     }
 
     public static String convertDuration(int duration) {
+        if(duration == -1) return "0:00";
         if(duration == 0) return "0:15";
         double i = (double) duration;
         double hours = Math.floor(i / 2d);

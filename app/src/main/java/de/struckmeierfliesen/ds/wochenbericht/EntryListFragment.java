@@ -83,4 +83,13 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
     public void entryLongClicked(View view, Entry entry) {
         mainActivity.deleteEntry(entry);
     }
+
+    public int getTotalHours() {
+        int hours = -1;
+        for(Entry entry : entryListAdapter.getData()) {
+            if(hours == -1) hours = 0;
+            hours += entry.duration;
+        }
+        return hours;
+    }
 }

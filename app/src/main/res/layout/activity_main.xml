@@ -31,6 +31,18 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:gravity="center" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="0 Stunden"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"
+                android:gravity="center"
+                android:paddingLeft="16dp"
+                android:paddingStart="16dp"
+                android:id="@+id/totalHours" />
+
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>

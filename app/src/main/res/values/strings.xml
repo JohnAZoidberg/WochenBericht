@@ -16,4 +16,8 @@
     <string name="name">Name</string>
     <string name="firstName">Vorname</string>
     <string name="timeDivider" translatable="false">%1$d : %2$s</string>
+    <plurals name="xHours">
+        <item quantity="one">%s Stunde</item>
+        <item quantity="other">%s Stunden</item>
+    </plurals>
 </resources>
