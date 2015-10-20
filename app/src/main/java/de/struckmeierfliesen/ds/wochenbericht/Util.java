@@ -45,7 +45,7 @@ public class Util {
         return new int[] {day, month, year};
     }
 
-    public static Date addToDate(Date date, int value) {
+    public static Date addDays(Date date, int value) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
         c.add(Calendar.DATE, value);
@@ -53,7 +53,12 @@ public class Util {
     }
 
     public static int getDayDifference(Date date1, Date date2) {
-        long diffInMillies = date1.getTime() - date2.getTime();
-        return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+        if(isSameDay(date1, date2)) return 0;
+        else if(isSameDay(addDays(date1, 1), date2)) return -1;
+        else if(isSameDay(addDays(date1, -1), date2)) return 1;
+        else {
+            long diffInMillies = date1.getTime() - date2.getTime();
+            return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+        }
     }
 }

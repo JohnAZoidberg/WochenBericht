@@ -26,7 +26,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         mainActivity = (MainActivity) getActivity();
         Bundle args = getArguments();
         int position = args.getInt("position");
-        date = Util.addToDate(new Date(), -position);
+        date = Util.addDays(new Date(), -position);
 
         // initialize DataBaseConnection
         dbConn = new DataBaseConnection(getContext());

@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 stopEditing(false);
-                setDate(Util.addToDate(date, lastPosition - position));
+                setDate(Util.addDays(date, lastPosition - position));
                 lastPosition = position;
             }
 

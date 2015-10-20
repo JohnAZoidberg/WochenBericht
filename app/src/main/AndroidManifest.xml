@@ -27,6 +27,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.struckmeierfliesen.ds.wochenbericht.MainActivity" />
         </activity>
+        <receiver android:name=".AlarmReceiver" />
     </application>
 
 </manifest>
