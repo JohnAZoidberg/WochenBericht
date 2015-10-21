@@ -17,7 +17,7 @@
     <string name="tradeschool">trade school</string>
     <string name="firstName">Vorname</string>
     <plurals name="xHours">
-        <item quantity="one">%d hour</item>
-        <item quantity="other">%d hours</item>
+        <item quantity="one">%s hour</item>
+        <item quantity="other">%s hours</item>
     </plurals>
 </resources>
