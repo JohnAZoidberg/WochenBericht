@@ -5,13 +5,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 
 public class DataBaseConnection {
     // Database fields
@@ -43,6 +49,95 @@ public class DataBaseConnection {
 
     public void close() {
         dbHelper.close();
+    }
+
+    public String exportDatabase() {
+        JSONArray entriesDb = tableToJSON(MySQLiteHelper.TABLE_ENTRIES);
+        JSONArray installerDb = tableToJSON(MySQLiteHelper.TABLE_INSTALLERS);
+        JSONObject databaseJSON = new JSONObject();
+        String jsonString = "";
+        try {
+            databaseJSON.put(MySQLiteHelper.TABLE_ENTRIES, entriesDb);
+            databaseJSON.put(MySQLiteHelper.TABLE_INSTALLERS, installerDb);
+            jsonString = databaseJSON.toString();
+            System.out.println(jsonString);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonString;
+    }
+
+    private JSONArray tableToJSON(String tableName) {
+        String searchQuery = "SELECT  * FROM " + tableName;
+        Cursor cursor = database.rawQuery(searchQuery, null);
+
+        JSONArray resultSet = new JSONArray();
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            int totalColumn = cursor.getColumnCount();
+            JSONObject rowObject = new JSONObject();
+            for (int i = 0 ; i < totalColumn ; i++) {
+                if (cursor.getColumnName(i) != null) {
+                    try {
+                        if (cursor.getString(i) != null) {
+                            Log.d("TAG_NAME", cursor.getString(i));
+                            rowObject.put(cursor.getColumnName(i), cursor.getString(i));
+                        }
+                        else {
+                            rowObject.put(cursor.getColumnName(i), "");
+                        }
+                    }
+                    catch (Exception e) {
+                        Log.d("TAG_NAME", e.getMessage());
+                    }
+                }
+            }
+            resultSet.put(rowObject);
+            cursor.moveToNext();
+        }
+        cursor.close();
+        Log.d("TAG_NAME", resultSet.toString());
+        return resultSet;
+    }
+
+    public static void dropDatabase(Context context) {
+        context.deleteDatabase(MySQLiteHelper.DATABASE_NAME);
+    }
+
+    public void importDatabase(String jsonString) {
+        try {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            importTable(jsonObject, MySQLiteHelper.TABLE_ENTRIES);
+            importTable(jsonObject, MySQLiteHelper.TABLE_INSTALLERS);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void importTable(JSONObject jsonObject, String tableName) {
+        try {
+            JSONArray jsonArray = jsonObject.getJSONArray(tableName);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject entry = jsonArray.getJSONObject(i);
+                ContentValues values = new ContentValues();
+
+                Iterator<String> iter = entry.keys();
+                while (iter.hasNext()) {
+                    String key = iter.next();
+                    try {
+                        Object value = entry.get(key);
+                        if (value instanceof String) values.put(key, (String) value);
+                        if (value instanceof Integer) values.put(key, (int) value);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                database.insert(tableName, null, values);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private ArrayList<Entry> getEntries(Date date) {
