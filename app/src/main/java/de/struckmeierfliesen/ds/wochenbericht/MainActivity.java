@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     displayAddInstallerDialog();
                     // +1 because the first element is a dummy element which acts as a hint
                     // if there have not been previous entries (avgEntry == null)
-                    installerId = position + ((avgEntry == null) ? 1 : 0);
+                    //installerId = position + ((avgEntry == null) ? 1 : 0);
                 } else {
                     if (position != 0)
                         installerId = installers.get(installerAdapter.getItem(position));
@@ -257,6 +257,8 @@ public class MainActivity extends AppCompatActivity {
         String work = workEdit.getText().toString();
 
         // check if inputs are valid
+        boolean dumb = work.isEmpty();
+        boolean dumber = work.length() == 0;
         if(client.isEmpty()
                 || work.isEmpty()
                 //|| installers.size() == 0
@@ -285,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
     public void setTotalDuration(int durationCode) {
         String duration = Util.convertDuration(durationCode);
         if (durationCode >=24 ) Util.alert(this, "Mehr als 12 Stunden gearbeitet? :D Wow du bist aber fleißig!");
-        if (durationCode >=48 ) Util.alert(this, "Oke, mehr als 24 kannst du garnicht gearbeitet haben ;)");
+        if (durationCode >=48 ) Util.alert(this, "Oke, mehr als 24 kannst du gar nicht gearbeitet haben ;)");
         totalDurationView.setText(getResources().getQuantityString(
                 R.plurals.xHours, duration.equals("1:00") ? 1 : 2, duration));
     }
@@ -391,7 +393,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void addInstaller(String installer) {
         dbConn.open();
-        dbConn.addInstaller(installer);
+        installerId = dbConn.addInstaller(installer);
         dbConn.close();
         // add installer to all lists and maps
         installers.put(installer, installerId);
