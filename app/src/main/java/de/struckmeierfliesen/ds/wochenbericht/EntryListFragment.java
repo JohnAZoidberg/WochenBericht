@@ -49,6 +49,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         dbConn.open();
         ArrayList<Entry> entries = dbConn.getEntriesWithInstaller(date);
         dbConn.close();
+        if(Util.isSameDay(date, mainActivity.getDate())) entryChanged(entries);
         return entries;
     }
 
@@ -56,14 +57,17 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         this.date = date;
         ArrayList<Entry> entriesWithInstaller = loadEntries(date);
         entryListAdapter.setData(entriesWithInstaller);
+        entryChanged();
     }
 
     public void editEntry(Entry entry) {
         entryListAdapter.editEntry(entry);
+        entryChanged();
     }
 
     public void addEntry(Entry entry, int position) {
         entryListAdapter.addEntry(entry, position);
+        entryChanged();
     }
 
     public void deleteEntry(Entry entry) {
@@ -71,6 +75,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         dbConn.deleteEntry(entry);
         dbConn.close();
         entryListAdapter.deleteEntry(entry);
+        entryChanged();
     }
 
     // from EntryHolder.OnEntryClickListener interface
@@ -84,9 +89,21 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         mainActivity.deleteEntry(entry);
     }
 
+    private void entryChanged() {
+        mainActivity.setTotalDuration(getTotalHours());
+    }
+
+    private void entryChanged(ArrayList<Entry> entries) {
+        mainActivity.setTotalDuration(getTotalHours(entries));
+    }
+
     public int getTotalHours() {
+        return getTotalHours(entryListAdapter.getData());
+    }
+
+    public int getTotalHours(ArrayList<Entry> entries) {
         int hours = -1;
-        for(Entry entry : entryListAdapter.getData()) {
+        for(Entry entry : entries) {
             if(hours == -1) hours = 0;
             hours += entry.duration;
         }

@@ -284,6 +284,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void setTotalDuration(int durationCode) {
         String duration = Util.convertDuration(durationCode);
+        if (durationCode >=24 ) Util.alert(this, "Mehr als 12 Stunden gearbeitet? :D Wow du bist aber fleißig!");
+        if (durationCode >=48 ) Util.alert(this, "Oke, mehr als 24 kannst du garnicht gearbeitet haben ;)");
         totalDurationView.setText(getResources().getQuantityString(
                 R.plurals.xHours, duration.equals("1:00") ? 1 : 2, duration));
     }
