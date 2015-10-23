@@ -4,7 +4,6 @@ package de.struckmeierfliesen.ds.wochenbericht;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,11 +35,12 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         View rootView = inflater.inflate(R.layout.entries_recycler_view, container, false);
 
         // set up RecyclerView
-        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.entriesList);
+        EmptyRecyclerView recyclerView = (EmptyRecyclerView) rootView.findViewById(R.id.entriesList);
         entryListAdapter = new EntryListAdapter(loadEntries(date));
         entryListAdapter.setEntryClickListener(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(entryListAdapter);
+        recyclerView.setEmptyView(rootView.findViewById(R.id.empty));
 
         return rootView;
     }
