@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
         installerStrings.clear();
         if(addDummy) installerStrings.add(getResources().getString(R.string.installer));
         for(String s : installers.keySet()) installerStrings.add(s);
-        installerStrings.add(Util.ADD_INSTALLER); // add dummy installer which acts as a button
+        installerStrings.add(getString(R.string.add_installer)); // add dummy installer which acts as a button
     }
 
     private void addEntry(Entry entry) {
@@ -286,8 +286,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void setTotalDuration(int durationCode) {
         String duration = Util.convertDuration(durationCode);
-        if (durationCode >=24 ) Util.alert(this, "Mehr als 12 Stunden gearbeitet? :D Wow du bist aber fleißig!");
-        if (durationCode >=48 ) Util.alert(this, "Oke, mehr als 24 kannst du gar nicht gearbeitet haben ;)");
+        if (durationCode >=24 ) Util.alert(this, getString(R.string.over_twelve));
+        if (durationCode >=48 ) Util.alert(this, getString(R.string.over_twentyfour));
         totalDurationView.setText(getResources().getQuantityString(
                 R.plurals.xHours, duration.equals("1:00") ? 1 : 2, duration));
     }
@@ -368,9 +368,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void askForDeleteConfirmation(final Entry entry) {
         final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Wirklich löschen?")
-                .setPositiveButton("Ja", null)
-                .setNegativeButton("Nein", null).create();
+                .setTitle(getString(R.string.really_delete))
+                .setPositiveButton(getString(R.string.yes), null)
+                .setNegativeButton(getString(R.string.no), null).create();
 
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
 
@@ -399,8 +399,8 @@ public class MainActivity extends AppCompatActivity {
         installers.put(installer, installerId);
         installerStrings.add(installer);
         // Remove last item and add it again
-        installerAdapter.remove(Util.ADD_INSTALLER);
-        installerAdapter.add(Util.ADD_INSTALLER);
+        installerAdapter.remove(getString(R.string.add_installer));
+        installerAdapter.add(getString(R.string.add_installer));
         // Update installerAdapter
         installerAdapter.notifyDataSetChanged();
     }

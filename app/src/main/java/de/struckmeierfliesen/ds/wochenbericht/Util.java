@@ -9,8 +9,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
-    public static final String ADD_INSTALLER = "Monteur hinzufügen";
-
     public static void alert(Context context, String msg) {
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
     }

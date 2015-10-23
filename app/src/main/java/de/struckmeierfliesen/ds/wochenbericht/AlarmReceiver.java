@@ -37,7 +37,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
                         R.drawable.azubilog_small_simpleblue_eckig))
                 .setContentTitle(context.getResources().getString(R.string.app_name))
-                .setContentText("Du hast noch keine Arbeiten eingetragen!")
+                .setContentText(context.getString(R.string.no_entries_yet))
                 .setSound(alarmSound)
                 .setAutoCancel(true)
                 .setWhen(when)
