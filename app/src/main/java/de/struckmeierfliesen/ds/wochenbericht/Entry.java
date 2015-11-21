@@ -34,6 +34,10 @@ public class Entry {
         return Util.convertDuration(duration);
     }
 
+    public String getDuration(String divider) {
+        return Util.convertDuration(duration, divider);
+    }
+
     public String getInstaller() {
         return installer;
     }
@@ -46,6 +50,6 @@ public class Entry {
     public String toString() {
         String installer = installerId + "";
         if(this.installer != null) installer = this.installer;
-        return duration + "min \"" + work + "\" am " + date.toString() + " bei " + client + " mit " + installerId;
+        return duration + "min \"" + work + "\" am " + Util.formatDate(date) + " bei " + client + " mit " + installerId;
     }
 }

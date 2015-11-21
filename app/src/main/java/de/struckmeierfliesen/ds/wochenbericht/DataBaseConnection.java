@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.common.collect.BiMap;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 public class DataBaseConnection {
     // Database fields
@@ -140,7 +142,7 @@ public class DataBaseConnection {
         }
     }
 
-    private ArrayList<Entry> getEntries(Date date) {
+    private ArrayList<Entry> getEntries(@Nullable Date date) {
         ArrayList<Entry> entries = new ArrayList<>();
         // TODO maybe check if update is necessary
         Cursor cursor = database.query(MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, null);
@@ -156,7 +158,17 @@ public class DataBaseConnection {
         return entries;
     }
 
-    private Entry cursorToEntry(Cursor cursor, Date onlyDate) {
+    public List<List<Entry>> getLastWeekEntries(Date date) {
+        Date[] lastWeek = Util.getDatesOfLastWeek(date);
+        List<List<Entry>> weekEntries = new ArrayList<List<Entry>>(4);
+        for (Date day : lastWeek) {
+            ArrayList<Entry> entries = getEntries(day);
+            weekEntries.add(entries);
+        }
+        return weekEntries;
+    }
+
+    private Entry cursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
         if(cursor.getCount() == 0) return null;
         int id = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_ID));
         String client = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_CLIENT));
@@ -220,7 +232,7 @@ public class DataBaseConnection {
         return idToInstaller(entryList).get(0);
     }
 
-    public ArrayList<Entry> getEntriesWithInstaller(Date date) {
+    public ArrayList<Entry> getEntriesWithInstaller(@Nullable Date date) {
         return idToInstaller(getEntries(date));
     }
 

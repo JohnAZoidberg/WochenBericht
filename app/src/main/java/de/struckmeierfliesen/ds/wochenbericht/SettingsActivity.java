@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
@@ -22,7 +21,6 @@ import android.widget.TimePicker;
 
 import com.google.common.io.Files;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Calendar;
@@ -103,9 +101,7 @@ public class SettingsActivity extends AppCompatActivity {
                 String databaseJsonString = dbConn.exportDatabase();
                 dbConn.close();
                 try {
-                    //String path = SettingsActivity.this.getFilesDir().getPath();
-                    File path = Environment.getExternalStorageDirectory();
-                    Files.write(databaseJsonString, new File(path, "azubilogDB.json"), Charset.forName("UTF-8"));
+                    Files.write(databaseJsonString, Util.newFile("azubilogDB.json"), Charset.forName("UTF-8"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -115,10 +111,9 @@ public class SettingsActivity extends AppCompatActivity {
         importButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                File path = Environment.getExternalStorageDirectory();
                 String jsonString = null;
                 try {
-                    jsonString = Files.toString(new File(path, "azubilogDB.json"), Charset.forName("UTF-8"));
+                    jsonString = Files.toString(Util.newFile("azubilogDB.json"), Charset.forName("UTF-8"));
                     DataBaseConnection.dropDatabase(SettingsActivity.this);
                     dbConn.open();
                     dbConn.importDatabase(jsonString);

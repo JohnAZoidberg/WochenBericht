@@ -115,6 +115,7 @@
         android:id="@+id/dropDbButton"
         android:layout_alignTop="@+id/importButton"
         android:layout_toRightOf="@+id/importButton"
-        android:layout_toEndOf="@+id/importButton" />
+        android:layout_toEndOf="@+id/importButton"
+        android:visibility="gone"/>
 
 </RelativeLayout>

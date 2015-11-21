@@ -19,7 +19,7 @@
         android:text="@string/no_entries"
         android:textColor="@android:color/black"
         android:textSize="18sp"
-        android:visibility="gone"
+        android:visibility="visible"
         android:background="@drawable/whiter_element_divider"
-        android:gravity="center" />
+        android:gravity="center_horizontal" />
 </FrameLayout>

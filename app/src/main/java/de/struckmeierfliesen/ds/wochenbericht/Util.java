@@ -1,11 +1,14 @@
 package de.struckmeierfliesen.ds.wochenbericht;
 
 import android.content.Context;
+import android.os.Environment;
 import android.text.format.DateFormat;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
@@ -13,13 +16,17 @@ public class Util {
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
     }
 
-    public static String convertDuration(int duration) {
-        if(duration == -1) return "0:00";
-        if(duration == 0) return "0:15";
+    public static String convertDuration(int duration, String divider) {
+        if(duration == -1) return "0" + divider + "00";
+        if(duration == 0) return "0" + divider + "15";
         double i = (double) duration;
         double hours = Math.floor(i / 2d);
         String minutes = (i % 2 == 0) ? "00" : "30";
-        return (int) hours + ":" + minutes;
+        return (int) hours + divider + minutes;
+    }
+
+    public static String convertDuration(int duration) {
+        return convertDuration(duration, ":");
     }
 
     public static int convertDuration(String durationString) {
@@ -59,5 +66,49 @@ public class Util {
             long diffInMillies = date1.getTime() - date2.getTime();
             return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
         }
+    }
+
+    public static File newFile(String fileName) {
+        File path = Environment.getExternalStorageDirectory();
+        return new File(path, fileName);
+    }
+
+    public static String formatDate(Date date) {
+        return DateFormat.format("dd.MM.yy", date).toString();
+    }
+
+    public static Date[] getDatesOfLastWeek(Date date) {
+        Date[] week = new Date[5];
+
+        Calendar now = Calendar.getInstance();
+        now.setTime(date);
+        int weekday = now.get(Calendar.DAY_OF_WEEK);
+        if (weekday != Calendar.MONDAY) {
+            if (weekday == Calendar.SUNDAY) {
+                now.add(Calendar.DAY_OF_YEAR, -6);
+            } else {
+                int days = weekday - 2;
+                now.add(Calendar.DAY_OF_YEAR, -days);
+            }
+        }
+        week[0] = now.getTime();
+        for (int i = 1; i <= 4; i++) {
+            now.add(Calendar.DAY_OF_YEAR, 1);
+            week[i] = now.getTime();
+        }
+        return week;
+    }
+
+    public static String getDayAbbrev(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int day = calendar.get(Calendar.DAY_OF_WEEK);
+        String[] days;
+        if(Locale.getDefault().getCountry().equals(Locale.ENGLISH.getCountry())) {
+            days = new String[] {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
+        } else {
+            days = new String[] {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
+        }
+        return days[day - 1];
     }
 }

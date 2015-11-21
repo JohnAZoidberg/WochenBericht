@@ -31,6 +31,12 @@
     <string name="export">Export</string>
     <string name="import_">Import</string>
     <string name="delete">Delete</string>
+    <string name="generate_summary">Create report</string>
+    <string name="loading_please_wait">Loading. Please wait...</string>
+    <string name="comment_too_long">Comment too long</string>
+    <string name="comments">Comment</string>
+    <string name="year">Year</string>
+    <string name="page">Page</string>
     <plurals name="xHours">
         <item quantity="one">%s hour</item>
         <item quantity="other">%s hours</item>

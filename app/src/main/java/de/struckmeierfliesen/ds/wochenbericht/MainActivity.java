@@ -2,10 +2,14 @@ package de.struckmeierfliesen.ds.wochenbericht;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -33,6 +37,9 @@ import android.widget.TextView;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import org.apache.pdfbox.exceptions.COSVisitorException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -77,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBar supportActionBar = getSupportActionBar();
         if(supportActionBar != null) supportActionBar.setDisplayShowTitleEnabled(false);
         changeDateButton = (TextView) findViewById(R.id.changeDate);
-        changeDateButton.setText(DateFormat.format("dd.MM.yy", date) + "  ");
+        changeDateButton.setText(Util.getDayAbbrev(date) + " " + DateFormat.format("dd.MM.yy", date) + "  ");
         changeDateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         // add dummy duration as description
         if(avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
         durationStrings.add("0:15 h");
-        for(int i = 1; i <= 16; i++) {
+        for(int i = 1; i <= 18; i++) {
             durationStrings.add(Util.convertDuration(i) + " h");
         }
         ArrayAdapter<String> durationAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, durationStrings);
@@ -195,6 +202,14 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createReport();
+            }
+        });
     }
 
     @Override
@@ -210,12 +225,79 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
+            case R.id.action_generate:
+                createReport();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
     // own methods
+
+    private class AsyncReportCreator extends AsyncTask<String, String, String> {
+        ProgressDialog dialog;
+
+        @Override
+        protected void onPreExecute() {
+            dialog = ProgressDialog.show(MainActivity.this, getResources().getString(R.string.generate_summary),
+                getString(R.string.loading_please_wait), true, false);
+        }
+
+        @Override
+        protected void onPostExecute(String fileName) {
+            dialog.cancel();
+
+            Intent intent = new Intent();
+            intent.setAction(android.content.Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.fromFile(Util.newFile(fileName)), "application/pdf");
+            startActivity(intent);
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            if(params.length != 3) return null;
+            String comment = params[0];
+            String pageNumber = params[1];
+            String yearNumber = params[2];
+            try {
+                ReportGenerator generator = new ReportGenerator(MainActivity.this);
+                generator.fillIn(date, comment, pageNumber, yearNumber);
+            } catch (IOException | COSVisitorException e) {
+                e.printStackTrace();
+            }
+            return "newPDF.pdf";
+        }
+    }
+
+    private void createReport() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_create_report, null);
+        final EditText editComment = (EditText) view.findViewById(R.id.editComment);
+        final EditText editPageNumber = (EditText) view.findViewById(R.id.editPageNumber);
+        final EditText editYearNumber = (EditText) view.findViewById(R.id.editYearNumber);
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(getResources().getString(R.string.generate_summary)) // TODO translate
+                .setView(view)
+                .setPositiveButton(getResources().getString(R.string.generate_summary), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (editComment.length() > 2 * ReportGenerator.CUTOFF) {
+                            Util.alert(MainActivity.this, getString(R.string.comment_too_long));
+                            return;
+                        }
+                        AsyncReportCreator runner = new AsyncReportCreator();
+                        runner.execute(editComment.getText().toString(),
+                                editPageNumber.getText().toString(),
+                                editYearNumber.getText().toString());
+                    }
+                })
+                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                }).create();
+        dialog.show();
+    }
 
     private Entry loadAverageEntry() {
         dbConn.open();
@@ -432,7 +514,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setDate(Date date) {
         this.date = date;
-        changeDateButton.setText(DateFormat.format("dd.MM.yy", date) + "  ");
+        changeDateButton.setText(Util.getDayAbbrev(date) + " " + DateFormat.format("dd.MM.yy", date) + "  ");
     }
 
     public void setInstaller(String name) {

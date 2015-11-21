@@ -31,6 +31,12 @@
     <string name="export">Exportieren</string>
     <string name="import_">Importieren</string>
     <string name="delete">Löschen</string>
+    <string name="generate_summary">Bericht erstellen</string>
+    <string name="loading_please_wait">Laden. Bitte warten...</string>
+    <string name="comment_too_long">Kommentar zu lang</string>
+    <string name="comments">Bemerkungen</string>
+    <string name="year">Jahr</string>
+    <string name="page">Seite</string>
     <plurals name="xHours">
         <item quantity="one">%s Stunde</item>
         <item quantity="other">%s Stunden</item>
