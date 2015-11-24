@@ -191,6 +191,7 @@ public class DataBaseConnection {
     }
 
     public int saveEntry(Entry entry) {
+        if(entry.installerId == -1) throw new RuntimeException("You cannot add an entry without an installer!");
         ContentValues values = entryToValues(entry);
         return (int) database.insert(MySQLiteHelper.TABLE_ENTRIES, null, values);
     }
@@ -264,5 +265,11 @@ public class DataBaseConnection {
                 MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, MySQLiteHelper.COLUMN_DATE + " DESC", "1");
         cursor.moveToFirst();
         return (cursor.getCount() > 0) ? cursorToEntry(cursor, null) : null;
+    }
+
+    public boolean deleteInstaller(int installerId) {
+        boolean installerDeleted = database.delete(MySQLiteHelper.TABLE_INSTALLERS, MySQLiteHelper.INSTALLERS_COLUMN_ID + "=" + installerId, null) == 1;
+        boolean entriesDeleted = database.delete(MySQLiteHelper.TABLE_ENTRIES, MySQLiteHelper.COLUMN_INSTALLER_ID + "=" + installerId, null) == 1;
+        return installerDeleted && entriesDeleted;
     }
 }

@@ -55,6 +55,10 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
 
     public void updateEntries(Date date) {
         this.date = date;
+        updateEntries();
+    }
+
+    public void updateEntries() {
         ArrayList<Entry> entriesWithInstaller = loadEntries(date);
         entryListAdapter.setData(entriesWithInstaller);
         entryChanged();

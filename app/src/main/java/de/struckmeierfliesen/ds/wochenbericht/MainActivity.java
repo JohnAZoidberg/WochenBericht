@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText workEdit;
     private int duration = -1;
     private int installerId = -1;
-    private ArrayAdapter<String> installerAdapter;
+    private DeletableArrayAdapter<String> installerAdapter;
     private BiMap<String, Integer> installers = HashBiMap.create();
     private ArrayList<String> installerStrings = new ArrayList<String>(); // TODO use BiMap instead
     private SelectAgainSpinner installerSpinner;
@@ -151,9 +151,16 @@ public class MainActivity extends AppCompatActivity {
         installerSpinner = (SelectAgainSpinner) findViewById(R.id.spinner);
 
         getInstallers(avgEntry == null); // TODO if theres no installers and avgEntry == null there wont be any hint
-
-        installerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, installerStrings);
-        installerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        installerAdapter = new DeletableArrayAdapter<String>(this,
+                R.layout.spinner_item_deletable, R.id.spinnerText/*android.R.layout.simple_spinner_item*/, installerStrings);
+        installerAdapter.setDeleteListener(new DeletableArrayAdapter.DeleteListener() {
+            @Override
+            public void onDelete(int position, View view) {
+                String installer = installerStrings.get(position);
+                askForInstallerDeleteConfirmation(installer);
+            }
+        });
+        //installerAdapter.setDropDownViewResource(R.layout.spinner_item_deletable);//android.R.layout.simple_spinner_dropdown_item);
         installerSpinner.setAdapter(installerAdapter);
         installerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -174,7 +181,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //TODO installerSpinner.setSelection(0);
-        if(avgEntry != null) setInstallerById(avgEntry.installerId);
+        if(avgEntry != null) {
+            setInstallerById(avgEntry.installerId);
+            installerId = avgEntry.installerId;
+        }
 
         mDemoCollectionPagerAdapter = new DayAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.listView);
@@ -335,22 +345,15 @@ public class MainActivity extends AppCompatActivity {
 
     private Entry extractDataFromInputs() {
         // extract inputs
-        String client = clientEdit.getText().toString();
-        String work = workEdit.getText().toString();
+        String clientName = clientEdit.getText().toString().trim();
+        String workString = workEdit.getText().toString().trim();
 
-        // check if inputs are valid
-        boolean dumb = work.isEmpty();
-        boolean dumber = work.length() == 0;
-        if(client.isEmpty()
-                || work.isEmpty()
-                //|| installers.size() == 0
-                || duration == -1
-                || installerId == -1) {
+        if(workString.length() == 0 || clientName.length() == 0 || duration == -1 || installerId == -1) {
             Util.alert(this, getString(R.string.please_enter_input));
             return null;
         }
 
-        Entry entry = new Entry(client, this.date, duration, installerId, work);
+        Entry entry = new Entry(clientName, this.date, duration, installerId, workString);
         entry.installer = installers.inverse().get(installerId);
         entry.id = editingId;
         return entry;
@@ -363,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void deleteEntry(Entry entry) {
-        askForDeleteConfirmation(entry);
+        askForEntryDeleteConfirmation(entry);
     }
 
     public void setTotalDuration(int durationCode) {
@@ -438,7 +441,11 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View view) {
-                        String installer = input.getText().toString();
+                        String installer = input.getText().toString().trim();
+                        if(installer.isEmpty()) {
+                            Util.alert(MainActivity.this, getString(R.string.please_enter_input));
+                            return;
+                        }
                         MainActivity.this.addInstaller(installer);
                         dialog.dismiss();
                     }
@@ -448,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void askForDeleteConfirmation(final Entry entry) {
+    public void askForEntryDeleteConfirmation(final Entry entry) {
         final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.really_delete))
                 .setPositiveButton(getString(R.string.yes), null)
@@ -465,6 +472,43 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         getCurrentFragment().deleteEntry(entry);
+                        dialog.dismiss();
+                    }
+                });
+            }
+        });
+        dialog.show();
+    }
+
+    public void askForInstallerDeleteConfirmation(final String installer) {
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.really_delete))
+                .setMessage("Alle Arbeitseinträge mit diesem Gesellen werden auch gelöscht!")
+                .setPositiveButton(getString(R.string.yes), null)
+                .setNegativeButton(getString(R.string.no), null).create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+
+            @Override
+            public void onShow(DialogInterface d) {
+
+                Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                b.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View view) {
+                        int installerId = installers.get(installer);
+                        dbConn.open();
+                        boolean deleted = dbConn.deleteInstaller(installerId);
+                        dbConn.close();
+                        if(deleted) {
+                            installers.remove(installer);
+                            installerAdapter.remove(installer);
+                            installerAdapter.notifyDataSetChanged();
+                            // TODO delete all entries of other fragments
+                            getCurrentFragment().updateEntries();
+                        }
+                        Util.alert(MainActivity.this, "Installer " + installer + (deleted ? " un" : " ") + "sucessfully deleted!");
                         dialog.dismiss();
                     }
                 });
