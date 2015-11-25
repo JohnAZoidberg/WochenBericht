@@ -106,9 +106,8 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
     }
 
     public int getTotalHours(ArrayList<Entry> entries) {
-        int hours = -1;
+        int hours = 0;
         for(Entry entry : entries) {
-            if(hours == -1) hours = 0;
             hours += entry.duration;
         }
         return hours;

@@ -110,9 +110,9 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> durationStrings = new ArrayList<String>();
         // add dummy duration as description
         if(avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
-        durationStrings.add("0:15 h");
-        for(int i = 1; i <= 18; i++) {
-            durationStrings.add(Util.convertDuration(i) + " h");
+        durationStrings.add("0:15h (1)");
+        for(int i = 2; i <= 4*9; i+=2) {
+            durationStrings.add(Util.convertDuration(i) + " h (" + i + ")");
         }
         ArrayAdapter<String> durationAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, durationStrings);
         durationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -120,9 +120,13 @@ public class MainActivity extends AppCompatActivity {
         durationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // +1 because the first element is a dummy element which acts as a hint
+                // -1 because the first element is a dummy element which acts as a hint
                 // if there have not been previous entries (avgEntry == null)
-                duration = position - ((avgEntry == null) ? 1 : 0);
+                int actualPosition = 1 + position - ((avgEntry == null) ? 1 : 0);
+                if (actualPosition == 1 || actualPosition == 2) duration = actualPosition;
+                else {
+                    duration = (actualPosition  * 2) - 2;
+                }
             }
 
             @Override
@@ -217,7 +221,11 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createReport();
+                //createReport();
+                /*dbConn.open();
+                dbConn.upgradeDurations();
+                dbConn.close();*/
+                Util.alert(MainActivity.this, "nein!");
             }
         });
     }
@@ -362,7 +370,13 @@ public class MainActivity extends AppCompatActivity {
     public void setDuration(int duration) {
         // +1 because of dummy duration which acts as placeholder
         // if there have not been previous entries (avgEntry == null)
-        durationSpinner.setSelection(duration + ((avgEntry == null) ? 1 : 0));
+        int SPINNER_LIST_CONTANT = ((avgEntry == null) ? 1 : 0) - 1;
+        if (duration == 1 || duration == 2) {
+            durationSpinner.setSelection(duration + SPINNER_LIST_CONTANT);
+        } else {
+            int position = (2 + duration) / 2;
+            durationSpinner.setSelection(position + SPINNER_LIST_CONTANT);
+        }
     }
 
     public void deleteEntry(Entry entry) {
@@ -471,6 +485,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View view) {
+                        stopEditing(false);
                         getCurrentFragment().deleteEntry(entry);
                         dialog.dismiss();
                     }

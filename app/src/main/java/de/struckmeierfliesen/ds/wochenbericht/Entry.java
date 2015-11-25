@@ -31,7 +31,7 @@ public class Entry {
     }
 
     public String getDuration() {
-        return Util.convertDuration(duration);
+        return Util.convertDuration(duration) + " (" + duration + ")";
     }
 
     public String getDuration(String divider) {

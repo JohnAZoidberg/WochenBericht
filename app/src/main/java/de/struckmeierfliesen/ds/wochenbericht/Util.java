@@ -1,8 +1,14 @@
 package de.struckmeierfliesen.ds.wochenbericht;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
+import android.support.v7.app.AlertDialog;
 import android.text.format.DateFormat;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
@@ -17,6 +23,23 @@ public class Util {
     }
 
     public static String convertDuration(int duration, String divider) {
+        String hours =  String.valueOf((int) Math.floor(duration / 4d));
+        String minutes = "00";
+        //if(duration == 0) return hours + divider + minutes;
+        if(duration % 4 == 0) {
+            minutes = "00";
+        } else if((duration + 1) % 4 == 0) {
+            minutes = "45";
+        } else if((duration + 2) % 4 == 0) {
+            minutes = "30";
+        } else if((duration + 3) % 4 == 0) {
+            minutes = "15";
+        }
+        return hours + divider + minutes + "{" + oldConversion(duration) + "}";
+    }
+
+    public static String oldConversion(int duration) {
+        String divider = ":";
         if(duration == -1) return "0" + divider + "00";
         if(duration == 0) return "0" + divider + "15";
         double i = (double) duration;
@@ -31,10 +54,25 @@ public class Util {
 
     public static int convertDuration(String durationString) {
         String[] split = durationString.split(":");
-        if(split[1].equals("15")) return 0;
+        if(split[1].equals("15")) return 1;
         int hrs = Integer.parseInt(split[0]);
-        int mnts = split[1].equals("30") ? 1 : 0;
-        return  hrs * 2 + mnts;
+        int mnts = 0;
+        switch(split[1]) {
+            case "00":
+                mnts = 0;
+                break;
+            case "15":
+                mnts = 1;
+                break;
+            case "30":
+                mnts = 2;
+                break;
+            case "45":
+                mnts = 3;
+                break;
+        }
+        return  hrs * 4 + mnts;
+        //throw new RuntimeException("Method needs to be rewritten!"); // TODO
     }
 
     public static boolean isSameDay(Date date1, Date date2) {

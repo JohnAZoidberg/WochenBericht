@@ -272,4 +272,13 @@ public class DataBaseConnection {
         boolean entriesDeleted = database.delete(MySQLiteHelper.TABLE_ENTRIES, MySQLiteHelper.COLUMN_INSTALLER_ID + "=" + installerId, null) == 1;
         return installerDeleted && entriesDeleted;
     }
+
+    public void upgradeDurations() {
+        int[] durations = {0, -1, 1, -1, 2, -1, 3, -1, 4, -1, 5, -1, 6, -1, 7, -1, 8, -1, 9, -1, 10, -1, 11, -1, 12, -1, -13, -1, 14, -1, 15, -1, 16, -1, 17, -1, 18, -1, 19, -1, 20, -1};
+        for (int i = durations.length - 1; i > 0; i--) {
+            //database.update(MySQLiteHelper.TABLE_ENTRIES, values, MySQLiteHelper.COLUMN_ID + "=" + entry.id, null);
+            if(durations[i] != -1) database.execSQL("UPDATE " + MySQLiteHelper.TABLE_ENTRIES + " SET " + MySQLiteHelper.COLUMN_DURATION + " = " + i + " WHERE " + MySQLiteHelper.COLUMN_DURATION + " = " + durations[i]);
+        }
+        //database.execSQL("UPDATE " + MySQLiteHelper.TABLE_ENTRIES + " SET " + MySQLiteHelper.COLUMN_DURATION + " = " + "("+MySQLiteHelper.COLUMN_DURATION+"  * 2) - 1" + " WHERE " + MySQLiteHelper.COLUMN_DURATION + " > 2");
+    }
 }
