@@ -109,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> durationStrings = new ArrayList<String>();
         // add dummy duration as description
         if(avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
-        durationStrings.add("0:15h");
+        durationStrings.add("0:15 h");
         for(int i = 2; i <= 4*9; i+=2) {
-            durationStrings.add(Util.convertDuration(i));
+            durationStrings.add(Util.convertDuration(i) + " h");
         }
         ArrayAdapter<String> durationAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, durationStrings);
         durationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -220,9 +220,10 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //createReport();
-                /*dbConn.open();
-                dbConn.upgradeDurations();
+                /*//createReport();
+                dbConn.open();
+                dbConn.renameInstaller("Holger lange", "Holger Lange");
+                //dbConn.upgradeDurations();
                 dbConn.close();*/
                 Util.alert(MainActivity.this, "nein!");
             }
@@ -384,8 +385,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void setTotalDuration(int durationCode) {
         String duration = Util.convertDuration(durationCode);
-        if (durationCode >=24 ) Util.alert(this, getString(R.string.over_twelve));
-        if (durationCode >=48 ) Util.alert(this, getString(R.string.over_twentyfour));
+        if (durationCode >=88 ) Util.alert(this, getString(R.string.over_twentyfour));
+        else if (durationCode >=48 ) Util.alert(this, getString(R.string.over_twelve));
         totalDurationView.setText(getResources().getQuantityString(
                 R.plurals.xHours, duration.equals("1:00") ? 1 : 2, duration));
     }
