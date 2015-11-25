@@ -37,6 +37,7 @@
     <string name="comments">Bemerkungen</string>
     <string name="year">Jahr</string>
     <string name="page">Seite</string>
+    <string name="all_installers_will_be_deleted">Alle Arbeitseinträge mit diesem Gesellen werden auch gelöscht!</string>
     <plurals name="xHours">
         <item quantity="one">%s Stunde</item>
         <item quantity="other">%s Stunden</item>

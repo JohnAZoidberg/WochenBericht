@@ -19,7 +19,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.text.format.DateFormat;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -110,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> durationStrings = new ArrayList<String>();
         // add dummy duration as description
         if(avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
-        durationStrings.add("0:15h (1)");
+        durationStrings.add("0:15h");
         for(int i = 2; i <= 4*9; i+=2) {
-            durationStrings.add(Util.convertDuration(i) + " h (" + i + ")");
+            durationStrings.add(Util.convertDuration(i));
         }
         ArrayAdapter<String> durationAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, durationStrings);
         durationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -392,7 +391,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
-
         @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -432,104 +430,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displayAddInstallerDialog() {
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.add_installer))
-                .setView(input)
-                .setPositiveButton(getString(R.string.add), null)
-                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                }).create();
-
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-
+        Util.askForInput(this, R.string.add_installer, R.string.add, new Util.OnInputSubmitListener<String>() {
             @Override
-            public void onShow(DialogInterface d) {
-
-                Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                b.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View view) {
-                        String installer = input.getText().toString().trim();
-                        if(installer.isEmpty()) {
-                            Util.alert(MainActivity.this, getString(R.string.please_enter_input));
-                            return;
-                        }
-                        MainActivity.this.addInstaller(installer);
-                        dialog.dismiss();
-                    }
-                });
+            public void onSubmit(View v, String input) {
+                if(input.isEmpty()) {
+                    Util.alert(MainActivity.this, getString(R.string.please_enter_input));
+                    return;
+                }
+                MainActivity.this.addInstaller(input);
             }
         });
-        dialog.show();
     }
 
     public void askForEntryDeleteConfirmation(final Entry entry) {
-        final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.really_delete))
-                .setPositiveButton(getString(R.string.yes), null)
-                .setNegativeButton(getString(R.string.no), null).create();
-
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-
+        Util.askForConfirmation(this, R.string.really_delete, new View.OnClickListener() {
             @Override
-            public void onShow(DialogInterface d) {
-
-                Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                b.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View view) {
-                        stopEditing(false);
-                        getCurrentFragment().deleteEntry(entry);
-                        dialog.dismiss();
-                    }
-                });
+            public void onClick(View view) {
+                stopEditing(false);
+                getCurrentFragment().deleteEntry(entry);
             }
         });
-        dialog.show();
     }
 
     public void askForInstallerDeleteConfirmation(final String installer) {
-        final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.really_delete))
-                .setMessage("Alle Arbeitseinträge mit diesem Gesellen werden auch gelöscht!")
-                .setPositiveButton(getString(R.string.yes), null)
-                .setNegativeButton(getString(R.string.no), null).create();
-
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-
+        Util.askForConfirmation(this, R.string.really_delete, R.string.all_installers_will_be_deleted, new View.OnClickListener() {
             @Override
-            public void onShow(DialogInterface d) {
-
-                Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                b.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View view) {
-                        int installerId = installers.get(installer);
-                        dbConn.open();
-                        boolean deleted = dbConn.deleteInstaller(installerId);
-                        dbConn.close();
-                        if(deleted) {
-                            installers.remove(installer);
-                            installerAdapter.remove(installer);
-                            installerAdapter.notifyDataSetChanged();
-                            // TODO delete all entries of other fragments
-                            getCurrentFragment().updateEntries();
-                        }
-                        Util.alert(MainActivity.this, "Installer " + installer + (deleted ? " un" : " ") + "sucessfully deleted!");
-                        dialog.dismiss();
-                    }
-                });
+            public void onClick(View v) {
+                int installerId = installers.get(installer);
+                dbConn.open();
+                boolean deleted = dbConn.deleteInstaller(installerId);
+                dbConn.close();
+                if (deleted) {
+                    installers.remove(installer);
+                    installerAdapter.remove(installer);
+                    installerAdapter.notifyDataSetChanged();
+                    // TODO delete all entries of other fragments
+                    getCurrentFragment().updateEntries();
+                }
+                Util.alert(MainActivity.this, "Installer " + installer + (deleted ? " un" : " ") + "sucessfully deleted!");
             }
         });
-        dialog.show();
     }
 
     private void addInstaller(String installer) {

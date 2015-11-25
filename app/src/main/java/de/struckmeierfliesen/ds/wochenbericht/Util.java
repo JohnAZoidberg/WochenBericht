@@ -6,9 +6,11 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.File;
@@ -25,7 +27,6 @@ public class Util {
     public static String convertDuration(int duration, String divider) {
         String hours =  String.valueOf((int) Math.floor(duration / 4d));
         String minutes = "00";
-        //if(duration == 0) return hours + divider + minutes;
         if(duration % 4 == 0) {
             minutes = "00";
         } else if((duration + 1) % 4 == 0) {
@@ -35,7 +36,7 @@ public class Util {
         } else if((duration + 3) % 4 == 0) {
             minutes = "15";
         }
-        return hours + divider + minutes + "{" + oldConversion(duration) + "}";
+        return hours + divider + minutes;
     }
 
     public static String oldConversion(int duration) {
@@ -72,7 +73,7 @@ public class Util {
                 break;
         }
         return  hrs * 4 + mnts;
-        //throw new RuntimeException("Method needs to be rewritten!"); // TODO
+        // TODO has not been tested
     }
 
     public static boolean isSameDay(Date date1, Date date2) {
@@ -148,5 +149,63 @@ public class Util {
             days = new String[] {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
         }
         return days[day - 1];
+    }
+
+    public static void askForConfirmation(@NonNull Context context, @StringRes int titleId, @NonNull final View.OnClickListener onPositiveListener) {
+        askForConfirmation(context, titleId, -1, onPositiveListener);
+    }
+
+    public static void askForConfirmation(@NonNull Context context, @StringRes int titleId, @StringRes int messageId, @NonNull final View.OnClickListener onPositiveListener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                .setTitle(context.getString(titleId))
+                .setPositiveButton(context.getString(R.string.yes), null)
+                .setNegativeButton(context.getString(R.string.no), null);
+        if(messageId != -1) builder.setMessage(messageId);
+        final AlertDialog dialog = builder.create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(final DialogInterface d) {
+                Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                b.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onPositiveListener.onClick(v);
+                        d.dismiss();
+                    }
+                });
+            }
+        });
+        dialog.show();
+    }
+
+    public static void askForInput(@NonNull Context context, @StringRes int titleId, @StringRes int positiveId, @NonNull final OnInputSubmitListener<String> onPositiveListener) {
+        final EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        final AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(context.getString(titleId))
+                .setView(input)
+                .setPositiveButton(context.getString(positiveId), null)
+                .setNegativeButton(context.getString(R.string.cancel), null).create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+
+            @Override
+            public void onShow(final DialogInterface d) {
+                Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                b.setOnClickListener( new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onPositiveListener.onSubmit(v, input.getText().toString().trim());
+                        d.dismiss();
+                    }
+                });
+            }
+        });
+        dialog.show();
+    }
+
+    interface OnInputSubmitListener<T> {
+        void onSubmit(View v, T input);
     }
 }

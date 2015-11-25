@@ -19,7 +19,7 @@
     <string name="no_entries">No entries for this day.</string>
     <string name="no_entries_yet">You have not yet entered any work!</string>
     <string name="over_twelve">Worked more than 12 hours? :D Wow, you are quite laborious!</string>
-    <string name="over_twentyfour">Oke, working more than 24 hours is not possible ;)</string>
+    <string name="over_twentyfour">Well, working more than 24 hours is not possible ;)</string>
     <string name="really_delete">Really delete?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
@@ -37,6 +37,7 @@
     <string name="comments">Comment</string>
     <string name="year">Year</string>
     <string name="page">Page</string>
+    <string name="all_installers_will_be_deleted">All entries with this installer will be deleted!</string>
     <plurals name="xHours">
         <item quantity="one">%s hour</item>
         <item quantity="other">%s hours</item>
