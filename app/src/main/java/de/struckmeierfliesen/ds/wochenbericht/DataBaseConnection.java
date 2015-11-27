@@ -21,7 +21,17 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.*;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_CLIENT;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DATE;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DURATION;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_INSTALLER_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_WORK;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.DATABASE_NAME;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.INSTALLERS_COLUMN_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.INSTALLERS_COLUMN_NAME;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.TABLE_ENTRIES;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.TABLE_INSTALLERS;
 
 public class DataBaseConnection {
     // Database fields
@@ -157,7 +167,7 @@ public class DataBaseConnection {
             Entry entry = cursorToEntry(cursor, null);
             if(entry != null) {
                 // check if the WHERE query works and if not it is to be replaced
-                if (Util.isSameDay(entry.date, date)) {
+                if (!Util.isSameDay(entry.date, date)) {
                     Log.e("Error Log by Dev :)", "Not same day!");
                     entry.work += " Wrong date! Supposed to be on " + Util.formatDate(date) + ", " +
                             "please inform developer!";
@@ -282,8 +292,8 @@ public class DataBaseConnection {
 
     public boolean deleteInstaller(int installerId) {
         boolean installerDeleted = database.delete(TABLE_INSTALLERS, INSTALLERS_COLUMN_ID + "=" + installerId, null) == 1;
-        boolean entriesDeleted = database.delete(TABLE_ENTRIES, COLUMN_INSTALLER_ID + "=" + installerId, null) == 1;
-        return installerDeleted && entriesDeleted;
+        database.delete(TABLE_ENTRIES, COLUMN_INSTALLER_ID + "=" + installerId, null);
+        return installerDeleted;
     }
 
     public void upgradeDurations() {

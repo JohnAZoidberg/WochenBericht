@@ -64,8 +64,8 @@ public class MainActivity extends AppCompatActivity {
     private Button saveButton;
     private TextView totalDurationView;
 
-    private ViewPager mViewPager;
-    private DayAdapter mDemoCollectionPagerAdapter;
+    private ViewPager dayViewPager;
+    private DayAdapter dayAdapter;
 
     // -1 means editing is off and if editingId is on this variable holds the id of the entry being edited
     private int editingId = NOT_EDITING;
@@ -190,10 +190,10 @@ public class MainActivity extends AppCompatActivity {
             installerId = avgEntry.installerId;
         }
 
-        mDemoCollectionPagerAdapter = new DayAdapter(getSupportFragmentManager());
-        mViewPager = (ViewPager) findViewById(R.id.listView);
-        mViewPager.setAdapter(mDemoCollectionPagerAdapter);
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        dayAdapter = new DayAdapter(getSupportFragmentManager());
+        dayViewPager = (ViewPager) findViewById(R.id.listView);
+        dayViewPager.setAdapter(dayAdapter);
+        dayViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             int lastPosition = 0;
 
             @Override
@@ -226,7 +226,17 @@ public class MainActivity extends AppCompatActivity {
                 dbConn.renameInstaller("Holger lange", "Holger Lange");
                 //dbConn.upgradeDurations();
                 dbConn.close();*/
-                Util.alert(MainActivity.this, "nein!");
+                dayViewPager.setCurrentItem(dayViewPager.getCurrentItem());
+                Util.alert(MainActivity.this, "Doch!");
+            }
+        });
+
+        fab.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                dayViewPager.setCurrentItem(dayViewPager.getCurrentItem() + 1);
+                dayViewPager.setCurrentItem(dayViewPager.getCurrentItem());
+                return true;
             }
         });
     }
@@ -326,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private EntryListFragment getCurrentFragment() {
-        return mDemoCollectionPagerAdapter.getRegisteredFragment(mViewPager.getCurrentItem());
+        return dayAdapter.getRegisteredFragment(dayViewPager.getCurrentItem());
     }
 
     public Date getDate() {
@@ -424,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
             int dayDifference = Util.getDayDifference(new Date(), date);
             if(dayDifference >= 0) {
                 MainActivity mainActivity = (MainActivity) getActivity();
-                mainActivity.mViewPager.setCurrentItem(dayDifference);
+                mainActivity.dayViewPager.setCurrentItem(dayDifference);
             } else {
                 Util.alert(getContext(), getResources().getString(R.string.only_present));
             }
@@ -463,13 +473,12 @@ public class MainActivity extends AppCompatActivity {
                 boolean deleted = dbConn.deleteInstaller(installerId);
                 dbConn.close();
                 if (deleted) {
-                    installers.remove(installer);
                     installerAdapter.remove(installer);
                     installerAdapter.notifyDataSetChanged();
-                    // TODO delete all entries of other fragments
-                    getCurrentFragment().updateEntries();
+                    // TODO use different method to reload all pages
+                    dayViewPager.setAdapter(dayAdapter);
                 }
-                Util.alert(MainActivity.this, "Installer " + installer + (deleted ? " un" : " ") + "sucessfully deleted!");
+                Util.alert(MainActivity.this, "Installer " + installer + (deleted ? " " : " un") + "sucessfully deleted!");
             }
         });
     }
