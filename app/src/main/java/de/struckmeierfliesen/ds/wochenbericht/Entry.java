@@ -50,6 +50,7 @@ public class Entry {
     public String toString() {
         String installer = installerId + "";
         if(this.installer != null) installer = this.installer;
-        return duration + "min \"" + work + "\" am " + Util.formatDate(date) + " bei " + client + " mit " + installerId;
+        return "\"" + work + "\" ( " + Util.formatDate(date) + ")" +
+                "bei " +client + " mit " + getInstaller() + "(" + installer + ")";
     }
 }

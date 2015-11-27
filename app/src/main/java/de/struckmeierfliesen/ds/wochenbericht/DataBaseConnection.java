@@ -21,22 +21,24 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.*;
+
 public class DataBaseConnection {
     // Database fields
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
-    private String[] allEntriesColumns = {
-            MySQLiteHelper.COLUMN_ID,
-            MySQLiteHelper.COLUMN_CLIENT,
-            MySQLiteHelper.COLUMN_DATE,
-            MySQLiteHelper.COLUMN_DURATION,
-            MySQLiteHelper.COLUMN_INSTALLER_ID,
-            MySQLiteHelper.COLUMN_WORK,
+    private final String[] allEntriesColumns = {
+            COLUMN_ID,
+            COLUMN_CLIENT,
+            COLUMN_DATE,
+            COLUMN_DURATION,
+            COLUMN_INSTALLER_ID,
+            COLUMN_WORK,
     };
 
-    private String[] allInstallersColumns = {
-            MySQLiteHelper.INSTALLERS_COLUMN_ID,
-            MySQLiteHelper.INSTALLERS_COLUMN_NAME
+    private final String[] allInstallersColumns = {
+            INSTALLERS_COLUMN_ID,
+            INSTALLERS_COLUMN_NAME
     };
 
     private BiMap<String, Integer> installers = HashBiMap.create();
@@ -56,11 +58,12 @@ public class DataBaseConnection {
     public String exportDatabase() {
         JSONArray entriesDb = tableToJSON(MySQLiteHelper.TABLE_ENTRIES);
         JSONArray installerDb = tableToJSON(MySQLiteHelper.TABLE_INSTALLERS);
+
         JSONObject databaseJSON = new JSONObject();
         String jsonString = "";
         try {
-            databaseJSON.put(MySQLiteHelper.TABLE_ENTRIES, entriesDb);
-            databaseJSON.put(MySQLiteHelper.TABLE_INSTALLERS, installerDb);
+            databaseJSON.put(TABLE_ENTRIES, entriesDb);
+            databaseJSON.put(TABLE_INSTALLERS, installerDb);
             jsonString = databaseJSON.toString();
             System.out.println(jsonString);
         } catch (JSONException e) {
@@ -104,14 +107,14 @@ public class DataBaseConnection {
     }
 
     public static void dropDatabase(Context context) {
-        context.deleteDatabase(MySQLiteHelper.DATABASE_NAME);
+        context.deleteDatabase(DATABASE_NAME);
     }
 
     public void importDatabase(String jsonString) {
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
-            importTable(jsonObject, MySQLiteHelper.TABLE_ENTRIES);
-            importTable(jsonObject, MySQLiteHelper.TABLE_INSTALLERS);
+            importTable(jsonObject, TABLE_ENTRIES);
+            importTable(jsonObject, TABLE_INSTALLERS);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -142,15 +145,25 @@ public class DataBaseConnection {
         }
     }
 
-    private ArrayList<Entry> getEntries(@Nullable Date date) {
-        ArrayList<Entry> entries = new ArrayList<>();
-        // TODO maybe check if update is necessary
-        Cursor cursor = database.query(MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, null);
+    private List<Entry> getEntries(@Nullable Date date) {
+        List<Entry> entries = new ArrayList<>();
+
+        long startTime = Util.getStartOfDay(date).getTime() / 1000;
+        long endTime = Util.getEndOfDay(date).getTime() / 1000;
+        String where = COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
+        Cursor cursor = database.query(TABLE_ENTRIES, allEntriesColumns, where, null, null, null, null);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
-            // TODO check date earlier in query
-            Entry entry = cursorToEntry(cursor, date);
-            if(entry != null) entries.add(entry);
+            Entry entry = cursorToEntry(cursor, null);
+            if(entry != null) {
+                // check if the WHERE query works and if not it is to be replaced
+                if (Util.isSameDay(entry.date, date)) {
+                    Log.e("Error Log by Dev :)", "Not same day!");
+                    entry.work += " Wrong date! Supposed to be on " + Util.formatDate(date) + ", " +
+                            "please inform developer!";
+                }
+                entries.add(entry);
+            }
             cursor.moveToNext();
         }
         cursor.close();
@@ -160,9 +173,9 @@ public class DataBaseConnection {
 
     public List<List<Entry>> getLastWeekEntries(Date date) {
         Date[] lastWeek = Util.getDatesOfLastWeek(date);
-        List<List<Entry>> weekEntries = new ArrayList<List<Entry>>(4);
+        List<List<Entry>> weekEntries = new ArrayList<>(4);
         for (Date day : lastWeek) {
-            ArrayList<Entry> entries = getEntries(day);
+            List<Entry> entries = getEntries(day);
             weekEntries.add(entries);
         }
         return weekEntries;
@@ -170,14 +183,14 @@ public class DataBaseConnection {
 
     private Entry cursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
         if(cursor.getCount() == 0) return null;
-        int id = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_ID));
-        String client = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_CLIENT));
-        long time = (long) cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_DATE)) * 1000;
+        int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+        String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
+        long time = (long) cursor.getInt(cursor.getColumnIndex(COLUMN_DATE)) * 1000;
         Date date = new Date(time);
         if(onlyDate != null && !Util.isSameDay(date, onlyDate)) return null;
-        int duration = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_DURATION));
-        int installerId = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.COLUMN_INSTALLER_ID));
-        String work = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.COLUMN_WORK));
+        int duration = cursor.getInt(cursor.getColumnIndex(COLUMN_DURATION));
+        int installerId = cursor.getInt(cursor.getColumnIndex(COLUMN_INSTALLER_ID));
+        String work = cursor.getString(cursor.getColumnIndex(COLUMN_WORK));
 
         Entry entry = new Entry(
                 client,
@@ -191,24 +204,24 @@ public class DataBaseConnection {
     }
 
     public int saveEntry(Entry entry) {
-        if(entry.installerId == -1) throw new RuntimeException("You cannot add an entry without an installer!");
+        if(entry.installerId == -1) throw new IllegalArgumentException("You cannot add an entry without an installer!");
         ContentValues values = entryToValues(entry);
-        return (int) database.insert(MySQLiteHelper.TABLE_ENTRIES, null, values);
+        return (int) database.insert(TABLE_ENTRIES, null, values);
     }
 
     public int addInstaller(String installer) {
         ContentValues values = new ContentValues();
-        values.put(MySQLiteHelper.INSTALLERS_COLUMN_NAME, installer);
-        return (int) database.insert(MySQLiteHelper.TABLE_INSTALLERS, null, values);
+        values.put(INSTALLERS_COLUMN_NAME, installer);
+        return (int) database.insert(TABLE_INSTALLERS, null, values);
     }
 
     public BiMap<String, Integer> getInstallers() {
         if(installers.size() == 0) {
-            Cursor cursor = database.query(MySQLiteHelper.TABLE_INSTALLERS, allInstallersColumns, null, null, null, null, null);
+            Cursor cursor = database.query(TABLE_INSTALLERS, allInstallersColumns, null, null, null, null, null);
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
-                int installerId = cursor.getInt(cursor.getColumnIndex(MySQLiteHelper.INSTALLERS_COLUMN_ID));
-                String installer = cursor.getString(cursor.getColumnIndex(MySQLiteHelper.INSTALLERS_COLUMN_NAME));
+                int installerId = cursor.getInt(cursor.getColumnIndex(INSTALLERS_COLUMN_ID));
+                String installer = cursor.getString(cursor.getColumnIndex(INSTALLERS_COLUMN_NAME));
                 installers.put(installer, installerId);
                 cursor.moveToNext();
             }
@@ -217,7 +230,7 @@ public class DataBaseConnection {
         return installers;
     }
 
-    public ArrayList<Entry> idToInstaller(ArrayList<Entry> entries) {
+    public List<Entry> idToInstaller(List<Entry> entries) {
         BiMap<Integer, String> biInstallers = getInstallers().inverse();
 
         for(Entry entry : entries) {
@@ -226,59 +239,67 @@ public class DataBaseConnection {
         return entries;
     }
 
-    // not very efficient
+    // TODO not very efficient
     public Entry idToInstaller(Entry entry) {
-        ArrayList<Entry> entryList = new ArrayList<Entry>();
+        List<Entry> entryList = new ArrayList<Entry>();
         entryList.add(entry);
         return idToInstaller(entryList).get(0);
     }
 
-    public ArrayList<Entry> getEntriesWithInstaller(@Nullable Date date) {
+    public List<Entry> getEntriesWithInstaller(@Nullable Date date) {
         return idToInstaller(getEntries(date));
     }
 
     public void editEntry(Entry entry) {
         ContentValues values = entryToValues(entry);
         if(entry.id != -1)
-            database.update(MySQLiteHelper.TABLE_ENTRIES, values, MySQLiteHelper.COLUMN_ID + "=" + entry.id, null);
+            database.update(TABLE_ENTRIES, values, COLUMN_ID + "=" + entry.id, null);
     }
 
     private ContentValues entryToValues(Entry entry) {
         ContentValues values = new ContentValues();
-        values.put(MySQLiteHelper.COLUMN_CLIENT, entry.client);
+        values.put(COLUMN_CLIENT, entry.client);
         long time = entry.date.getTime() / 1000;
-        values.put(MySQLiteHelper.COLUMN_DATE, time);
-        values.put(MySQLiteHelper.COLUMN_DURATION, entry.duration);
-        values.put(MySQLiteHelper.COLUMN_INSTALLER_ID, entry.installerId);
-        values.put(MySQLiteHelper.COLUMN_WORK, entry.work);
+        values.put(COLUMN_DATE, time);
+        values.put(COLUMN_DURATION, entry.duration);
+        values.put(COLUMN_INSTALLER_ID, entry.installerId);
+        values.put(COLUMN_WORK, entry.work);
         return values;
     }
 
     // return true if exactly one row was removed
     public boolean deleteEntry(Entry entry) {
-        return database.delete(MySQLiteHelper.TABLE_ENTRIES, MySQLiteHelper.COLUMN_ID + "=" + entry.id, null) == 1;
+        return database.delete(TABLE_ENTRIES, COLUMN_ID + "=" + entry.id, null) == 1;
     }
 
     public Entry loadAverageEntry() {
         // actually i'm just going to load the last entry
         Cursor cursor = database.query(
-                MySQLiteHelper.TABLE_ENTRIES, allEntriesColumns, null, null, null, null, MySQLiteHelper.COLUMN_DATE + " DESC", "1");
+                TABLE_ENTRIES, allEntriesColumns, null, null, null, null, COLUMN_DATE + " DESC", "1");
         cursor.moveToFirst();
         return (cursor.getCount() > 0) ? cursorToEntry(cursor, null) : null;
     }
 
     public boolean deleteInstaller(int installerId) {
-        boolean installerDeleted = database.delete(MySQLiteHelper.TABLE_INSTALLERS, MySQLiteHelper.INSTALLERS_COLUMN_ID + "=" + installerId, null) == 1;
-        boolean entriesDeleted = database.delete(MySQLiteHelper.TABLE_ENTRIES, MySQLiteHelper.COLUMN_INSTALLER_ID + "=" + installerId, null) == 1;
+        boolean installerDeleted = database.delete(TABLE_INSTALLERS, INSTALLERS_COLUMN_ID + "=" + installerId, null) == 1;
+        boolean entriesDeleted = database.delete(TABLE_ENTRIES, COLUMN_INSTALLER_ID + "=" + installerId, null) == 1;
         return installerDeleted && entriesDeleted;
     }
 
     public void upgradeDurations() {
         int[] durations = {0, -1, 1, -1, 2, -1, 3, -1, 4, -1, 5, -1, 6, -1, 7, -1, 8, -1, 9, -1, 10, -1, 11, -1, 12, -1, -13, -1, 14, -1, 15, -1, 16, -1, 17, -1, 18, -1, 19, -1, 20, -1};
         for (int i = durations.length - 1; i > 0; i--) {
-            //database.update(MySQLiteHelper.TABLE_ENTRIES, values, MySQLiteHelper.COLUMN_ID + "=" + entry.id, null);
-            if(durations[i] != -1) database.execSQL("UPDATE " + MySQLiteHelper.TABLE_ENTRIES + " SET " + MySQLiteHelper.COLUMN_DURATION + " = " + i + " WHERE " + MySQLiteHelper.COLUMN_DURATION + " = " + durations[i]);
+            //database.update(TABLE_ENTRIES, values, COLUMN_ID + "=" + entry.id, null);
+            if(durations[i] != -1) database.execSQL("UPDATE " + TABLE_ENTRIES + " SET " + COLUMN_DURATION + " = " + i + " WHERE " + COLUMN_DURATION + " = " + durations[i]);
         }
-        //database.execSQL("UPDATE " + MySQLiteHelper.TABLE_ENTRIES + " SET " + MySQLiteHelper.COLUMN_DURATION + " = " + "("+MySQLiteHelper.COLUMN_DURATION+"  * 2) - 1" + " WHERE " + MySQLiteHelper.COLUMN_DURATION + " > 2");
+        //database.execSQL("UPDATE " + TABLE_ENTRIES + " SET " + COLUMN_DURATION + " = " + "("+COLUMN_DURATION+"  * 2) - 1" + " WHERE " + COLUMN_DURATION + " > 2");
+    }
+
+    // TODO doesnt work
+    public void renameInstaller(String oldInstaller, String newInstaller) {
+        ContentValues values = new ContentValues();
+        values.put(INSTALLERS_COLUMN_NAME, newInstaller);
+        //return 1 == database.update(TABLE_INSTALLERS, values, INSTALLERS_COLUMN_NAME + " = " + oldInstaller, null);
+        database.execSQL("UPDATE " + TABLE_INSTALLERS + " SET " + INSTALLERS_COLUMN_NAME + " = '" + newInstaller + "' WHERE " + INSTALLERS_COLUMN_NAME + " = '" + oldInstaller + "'");
     }
 }

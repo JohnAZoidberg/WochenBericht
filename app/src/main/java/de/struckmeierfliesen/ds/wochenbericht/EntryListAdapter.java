@@ -7,16 +7,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import de.struckmeierfliesen.ds.wochenbericht.databinding.EntriesListBinding;
 
 public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.EntryHolder>{
 
-    private ArrayList<Entry> items;
+    private List<Entry> items;
     private OnEntryClickListener clickListener;
 
-    public EntryListAdapter(ArrayList<Entry> data) {
+    public EntryListAdapter(List<Entry> data) {
         super();
         items = data;
     }
@@ -38,7 +38,7 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
         return items.size();
     }
 
-    public void setData(ArrayList<Entry> newItems) {
+    public void setData(List<Entry> newItems) {
         items.clear();
         for(Entry item : newItems) items.add(item);
         notifyDataSetChanged();
@@ -68,7 +68,7 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
         notifyDataSetChanged();
     }
 
-    public ArrayList<Entry> getData() {
+    public List<Entry> getData() {
         return items;
     }
 

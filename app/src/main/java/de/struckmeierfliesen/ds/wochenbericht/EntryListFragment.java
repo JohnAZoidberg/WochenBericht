@@ -8,8 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 // Instances of this class are fragments representing a single
 // object in our collection.
@@ -45,9 +45,9 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         return rootView;
     }
 
-    private ArrayList<Entry> loadEntries(Date date) {
+    private List<Entry> loadEntries(Date date) {
         dbConn.open();
-        ArrayList<Entry> entries = dbConn.getEntriesWithInstaller(date);
+        List<Entry> entries = dbConn.getEntriesWithInstaller(date);
         dbConn.close();
         if(Util.isSameDay(date, mainActivity.getDate())) entryChanged(entries);
         return entries;
@@ -59,7 +59,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
     }
 
     public void updateEntries() {
-        ArrayList<Entry> entriesWithInstaller = loadEntries(date);
+        List<Entry> entriesWithInstaller = loadEntries(date);
         entryListAdapter.setData(entriesWithInstaller);
         entryChanged();
     }
@@ -97,7 +97,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         mainActivity.setTotalDuration(getTotalHours());
     }
 
-    private void entryChanged(ArrayList<Entry> entries) {
+    private void entryChanged(List<Entry> entries) {
         mainActivity.setTotalDuration(getTotalHours(entries));
     }
 
@@ -105,7 +105,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         return getTotalHours(entryListAdapter.getData());
     }
 
-    public int getTotalHours(ArrayList<Entry> entries) {
+    public int getTotalHours(List<Entry> entries) {
         int hours = 0;
         for(Entry entry : entries) {
             hours += entry.duration;

@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private int installerId = -1;
     private DeletableArrayAdapter<String> installerAdapter;
     private BiMap<String, Integer> installers = HashBiMap.create();
-    private ArrayList<String> installerStrings = new ArrayList<String>(); // TODO use BiMap instead
+    private List<String> installerStrings = new ArrayList<String>(); // TODO use BiMap instead
     private SelectAgainSpinner installerSpinner;
     private Spinner durationSpinner;
     private TextView changeDateButton;
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set up number picker
         durationSpinner = (Spinner) findViewById(R.id.durationSpinner);
-        ArrayList<String> durationStrings = new ArrayList<String>();
+        List<String> durationStrings = new ArrayList<String>();
         // add dummy duration as description
         if(avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
         durationStrings.add("0:15 h");
