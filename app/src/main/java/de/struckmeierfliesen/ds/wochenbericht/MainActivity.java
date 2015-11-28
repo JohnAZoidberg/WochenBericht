@@ -17,7 +17,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -226,13 +225,14 @@ public class MainActivity extends AppCompatActivity {
                 dbConn.renameInstaller("Holger lange", "Holger Lange");
                 //dbConn.upgradeDurations();
                 dbConn.close();*/
-                Util.askForInput(MainActivity.this, "Which page?", "Change to", InputType.TYPE_CLASS_NUMBER, new Util.OnInputSubmitListener<String>() {
+                /*Util.askForInput(MainActivity.this, "Which page?", "Change to", InputType.TYPE_CLASS_NUMBER, new Util.OnInputSubmitListener<String>() {
                     @Override
                     public void onSubmit(View v, String input) {
                         dayViewPager.setCurrentItem(Integer.parseInt(input));
                     }
-                });
-                Util.alert(MainActivity.this, "Doch!");
+                });*/
+                SettingsActivity.disableAlarm(MainActivity.this);
+                Util.alert(MainActivity.this, "Alarm cancelled!");
             }
         });
 

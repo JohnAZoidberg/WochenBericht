@@ -32,7 +32,7 @@
     <string name="import_">Import</string>
     <string name="delete">Delete</string>
     <string name="generate_summary">Create report</string>
-    <string name="loading_please_wait">Loading. Please wait...</string>
+    <string name="loading_please_wait">Loading. Please wait…</string>
     <string name="comment_too_long">Comment too long</string>
     <string name="comments">Comment</string>
     <string name="year">Year</string>
@@ -44,4 +44,6 @@
         <item quantity="other">%s hours</item>
     </plurals>
     <string name="zero_hours">0:00 hours</string>
+    <string name="really_import">Really import?</string>
+    <string name="import_explanation">If you import the data you will lose all the old entries.</string>
 </resources>

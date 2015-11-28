@@ -32,7 +32,7 @@
     <string name="import_">Importieren</string>
     <string name="delete">Löschen</string>
     <string name="generate_summary">Bericht erstellen</string>
-    <string name="loading_please_wait">Laden. Bitte warten...</string>
+    <string name="loading_please_wait">Laden. Bitte warten…</string>
     <string name="comment_too_long">Kommentar zu lang</string>
     <string name="comments">Bemerkungen</string>
     <string name="year">Jahr</string>
@@ -44,4 +44,7 @@
         <item quantity="other">%s Stunden</item>
     </plurals>
     <string name="zero_hours">0:00 Stunden</string>
+    <string name="app_version" translatable="false">Alpha 0.3.1</string>
+    <string name="really_import">Wirklich importieren?</string>
+    <string name="import_explanation">Wenn du importierst werden die alten Einträge gelöscht!</string>
 </resources>

@@ -9,8 +9,8 @@ android {
         applicationId "de.struckmeierfliesen.ds.wochenbericht"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 3
-        versionName "Alpha 2.1"
+        versionCode 4
+        versionName "Alpha 0.3.1"
     }
     buildTypes {
         release {

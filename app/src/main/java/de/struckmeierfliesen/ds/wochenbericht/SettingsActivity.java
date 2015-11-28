@@ -24,7 +24,6 @@ import com.google.common.io.Files;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Calendar;
-import java.util.Date;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -82,11 +81,7 @@ public class SettingsActivity extends AppCompatActivity {
         reminderSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor editor = sharedPrefs.edit();
-                editor.putBoolean("remind", isChecked);
-                editor.apply();
-                disableAlarmForToday();
-                scheduleNotification();
+                switchAlarmOnOff(isChecked);
             }
         });
         loadNotifSettings();
@@ -111,16 +106,22 @@ public class SettingsActivity extends AppCompatActivity {
         importButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String jsonString = null;
-                try {
-                    jsonString = Files.toString(Util.newFile("azubilogDB.json"), Charset.forName("UTF-8"));
-                    DataBaseConnection.dropDatabase(SettingsActivity.this);
-                    dbConn.open();
-                    dbConn.importDatabase(jsonString);
-                    dbConn.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Util.askForConfirmation(getApplicationContext(),
+                        getString(R.string.really_import), getString(R.string.import_explanation), new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                String jsonString = null;
+                                try {
+                                    jsonString = Files.toString(Util.newFile("azubilogDB.json"), Charset.forName("UTF-8"));
+                                    DataBaseConnection.dropDatabase(SettingsActivity.this);
+                                    dbConn.open();
+                                    dbConn.importDatabase(jsonString);
+                                    dbConn.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
             }
         });
         Button dropDbButton = (Button) findViewById(R.id.dropDbButton);
@@ -130,6 +131,34 @@ public class SettingsActivity extends AppCompatActivity {
                 DataBaseConnection.dropDatabase(SettingsActivity.this);
             }
         });
+
+        // TODO to be deleted in future versions
+        Button updateButton = (Button) findViewById(R.id.dropDbButton);
+        updateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Util.askForConfirmation(SettingsActivity.this, "Datenbank wirklich updaten?",
+                        "Du darfst die Datenbank nur einmal updaten und das auch nur," +
+                                "wenn nach dem App Update deine Zeiten" +
+                                "der Dauer für die Einträge nicht mehr stimmen!",
+                        new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dbConn.open();
+                        dbConn.upgradeDurations();
+                        dbConn.close();
+                        Util.alert(getApplicationContext(), "Update durchgeführt!");
+                    }
+                });
+            }
+        });
+    }
+
+    private void switchAlarmOnOff(boolean switchOn) {
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putBoolean("remind", switchOn);
+        editor.apply();
+        enableAlarm(switchOn);
     }
 
     @Override
@@ -151,25 +180,38 @@ public class SettingsActivity extends AppCompatActivity {
         setTimeButton.setText(getString(R.string.timeDivider, hourOfDay, ((minute < 10) ? "0" : "") + minute));
     }
 
-    private void scheduleNotification() {
+    private void enableAlarm(boolean enable) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
         Intent notificationIntent = new Intent(this, AlarmReceiver.class);
-        //notificationIntent.putExtra(AlarmReceiver.NOTIFICATION_ID, 1);
-        //notificationIntent.putExtra(AlarmReceiver.NOTIFICATION, notification);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+        alarmManager.cancel(pendingIntent);
+        if (enable) {
+            alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+            Util.alert(this, "Alarm set at " + Util.formatDate(cal.getTime()));
+        } else {
+            Util.alert(this, "Alarm disabled!");
+        }
     }
 
-    private void disableAlarmForToday() {
-        Date date = new Date();
-        //if (enable) date = Util.addDays(date, -1);
-        AlarmReceiver.date = date;
+    public static void disableAlarm(Context context) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(
+                "de.struckmeierfliesen.ds.wochenbericht.SETTINGS", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putBoolean("remind", true);
+        editor.apply();
+
+        Intent notificationIntent = new Intent(context, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(pendingIntent);
+        Util.alert(context, "Alarm disabled!");
     }
 
     public static class TimePickerFragment extends DialogFragment
@@ -203,6 +245,7 @@ public class SettingsActivity extends AppCompatActivity {
         editor.apply();
         setTimeButton.setText(getString(R.string.timeDivider, hourOfDay, (minute == 0) ? "00" : minute));
         reminderSwitch.setChecked(true);
+        enableAlarm(true);
     }
 
     private void saveNames() {

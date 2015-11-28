@@ -118,4 +118,24 @@
         android:layout_toEndOf="@+id/importButton"
         android:visibility="gone"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Update"
+        android:id="@+id/updateButton"
+        android:layout_alignTop="@+id/importButton"
+        android:layout_toRightOf="@+id/importButton"
+        android:layout_toEndOf="@+id/importButton"
+        android:visibility="visible"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/app_version"
+        android:id="@+id/appVersionText"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
 </RelativeLayout>
