@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
@@ -156,11 +157,16 @@ public class Util {
     }
 
     public static void askForConfirmation(@NonNull Context context, @StringRes int titleId, @StringRes int messageId, @NonNull final View.OnClickListener onPositiveListener) {
+        String messageString = (messageId == -1) ? null : context.getString(messageId);
+        askForConfirmation(context, context.getString(titleId), messageString, onPositiveListener);
+    }
+
+    public static void askForConfirmation(@NonNull Context context, String title, @Nullable String message, @NonNull final View.OnClickListener onPositiveListener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                .setTitle(context.getString(titleId))
+                .setTitle(title)
                 .setPositiveButton(context.getString(R.string.yes), null)
                 .setNegativeButton(context.getString(R.string.no), null);
-        if(messageId != -1) builder.setMessage(messageId);
+        if(message != null) builder.setMessage(message);
         final AlertDialog dialog = builder.create();
 
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -179,13 +185,21 @@ public class Util {
         dialog.show();
     }
 
-    public static void askForInput(@NonNull Context context, @StringRes int titleId, @StringRes int positiveId, @NonNull final OnInputSubmitListener<String> onPositiveListener) {
+    public static void askForInput(@NonNull Context context, @StringRes int titleId, @StringRes int positiveId, @NonNull final OnInputSubmitListener onPositiveListener) {
+        askForInput(context, context.getString(titleId), context.getString(positiveId), onPositiveListener);
+    }
+
+    public static void askForInput(@NonNull Context context, String title, String positive, @NonNull final OnInputSubmitListener<String> onPositiveListener) {
+        askForInput(context, title, positive, InputType.TYPE_CLASS_TEXT, onPositiveListener);
+    }
+
+    public static void askForInput(@NonNull Context context, String title, String positive, int inputType, @NonNull final OnInputSubmitListener<String> onPositiveListener) {
         final EditText input = new EditText(context);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setInputType(inputType);
         final AlertDialog dialog = new AlertDialog.Builder(context)
-                .setTitle(context.getString(titleId))
+                .setTitle(title)
                 .setView(input)
-                .setPositiveButton(context.getString(positiveId), null)
+                .setPositiveButton(positive, null)
                 .setNegativeButton(context.getString(R.string.cancel), null).create();
 
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {

@@ -25,7 +25,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         mainActivity = (MainActivity) getActivity();
         Bundle args = getArguments();
         int position = args.getInt("position");
-        date = Util.addDays(new Date(), -position);
+        date = Util.addDays(new Date(), position - DayAdapter.DAY_FRAGMENTS / 2);
 
         // initialize DataBaseConnection
         dbConn = new DataBaseConnection(getContext());
@@ -111,5 +111,9 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
             hours += entry.duration;
         }
         return hours;
+    }
+
+    public Date getDate() {
+        return date;
     }
 }

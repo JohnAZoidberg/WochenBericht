@@ -11,20 +11,17 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.text.format.DateFormat;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -84,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBar supportActionBar = getSupportActionBar();
         if(supportActionBar != null) supportActionBar.setDisplayShowTitleEnabled(false);
         changeDateButton = (TextView) findViewById(R.id.changeDate);
-        changeDateButton.setText(Util.getDayAbbrev(date) + " " + DateFormat.format("dd.MM.yy", date) + "  ");
+        setDate(date);
         changeDateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -193,8 +190,8 @@ public class MainActivity extends AppCompatActivity {
         dayAdapter = new DayAdapter(getSupportFragmentManager());
         dayViewPager = (ViewPager) findViewById(R.id.listView);
         dayViewPager.setAdapter(dayAdapter);
+        dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2);
         dayViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            int lastPosition = 0;
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -203,12 +200,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                int hours = getCurrentFragment().getTotalHours();
+                EntryListFragment registeredFragment = dayAdapter.getRegisteredFragment(position);
+                int hours = registeredFragment.getTotalHours();
                 setTotalDuration(hours);
 
+                Date selectedDate = registeredFragment.getDate();
+
                 stopEditing(false);
-                setDate(Util.addDays(date, lastPosition - position));
-                lastPosition = position;
+                setDate(selectedDate);
             }
 
             @Override
@@ -216,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        //dayViewPager.setCurrentItem(50);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -226,7 +226,12 @@ public class MainActivity extends AppCompatActivity {
                 dbConn.renameInstaller("Holger lange", "Holger Lange");
                 //dbConn.upgradeDurations();
                 dbConn.close();*/
-                dayViewPager.setCurrentItem(dayViewPager.getCurrentItem());
+                Util.askForInput(MainActivity.this, "Which page?", "Change to", InputType.TYPE_CLASS_NUMBER, new Util.OnInputSubmitListener<String>() {
+                    @Override
+                    public void onSubmit(View v, String input) {
+                        dayViewPager.setCurrentItem(Integer.parseInt(input));
+                    }
+                });
                 Util.alert(MainActivity.this, "Doch!");
             }
         });
@@ -412,7 +417,7 @@ public class MainActivity extends AppCompatActivity {
             int year;
             int month;
             int day;
-            if(dateArray != null) {
+            if (dateArray != null) {
                 day = dateArray[0];
                 month = dateArray[1];
                 year = dateArray[2];
@@ -432,11 +437,11 @@ public class MainActivity extends AppCompatActivity {
             calendar.set(year, month, day);
             Date date = calendar.getTime();
             int dayDifference = Util.getDayDifference(new Date(), date);
-            if(dayDifference >= 0) {
-                MainActivity mainActivity = (MainActivity) getActivity();
-                mainActivity.dayViewPager.setCurrentItem(dayDifference);
+            MainActivity mainActivity = (MainActivity) getActivity();
+            if (Math.abs(dayDifference) < 50) {
+                mainActivity.dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2 - dayDifference);
             } else {
-                Util.alert(getContext(), getResources().getString(R.string.only_present));
+                Util.alert(mainActivity, mainActivity.getString(R.string.fifty_day_limit));
             }
         }
     }
@@ -445,7 +450,7 @@ public class MainActivity extends AppCompatActivity {
         Util.askForInput(this, R.string.add_installer, R.string.add, new Util.OnInputSubmitListener<String>() {
             @Override
             public void onSubmit(View v, String input) {
-                if(input.isEmpty()) {
+                if (input.isEmpty()) {
                     Util.alert(MainActivity.this, getString(R.string.please_enter_input));
                     return;
                 }
@@ -524,7 +529,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void setDate(Date date) {
         this.date = date;
-        changeDateButton.setText(Util.getDayAbbrev(date) + " " + DateFormat.format("dd.MM.yy", date) + "  ");
+        changeDateButton.setText(new StringBuilder().append(Util.getDayAbbrev(date)).append(" ").append(DateFormat.format("dd.MM.yy", date)).append("  ").toString());
+        if (! Util.isSameDay(new Date(), date)) {
+            changeDateButton.setTextColor(0xFFFFFFFF);
+        } else {
+            changeDateButton.setTextColor(ContextCompat.getColor(this, R.color.colorPrimaryFont));
+        }
     }
 
     public void setInstaller(String name) {
@@ -535,41 +545,4 @@ public class MainActivity extends AppCompatActivity {
         installerSpinner.setSelection(installerStrings.indexOf(installers.inverse().get(installerId)));
     }
 
-    public class DayAdapter extends FragmentStatePagerAdapter {
-        SparseArray<EntryListFragment> registeredFragments = new SparseArray<EntryListFragment>();
-
-        public DayAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int i) {
-            return new EntryListFragment();
-        }
-
-        @Override
-        public int getCount() {
-            return 100;
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            EntryListFragment fragment = (EntryListFragment) super.instantiateItem(container, position);
-            Bundle args = new Bundle();
-            args.putInt("position", position);
-            fragment.setArguments(args);
-            registeredFragments.put(position, fragment);
-            return fragment;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            registeredFragments.remove(position);
-            super.destroyItem(container, position, object);
-        }
-
-        public EntryListFragment getRegisteredFragment(int position) {
-            return registeredFragments.get(position);
-        }
-    }
 }
