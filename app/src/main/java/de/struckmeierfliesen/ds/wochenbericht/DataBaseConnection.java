@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_CLIENT;
@@ -50,8 +51,6 @@ public class DataBaseConnection {
             INSTALLERS_COLUMN_ID,
             INSTALLERS_COLUMN_NAME
     };
-
-    private BiMap<String, Integer> installers = HashBiMap.create();
 
     public DataBaseConnection(Context context) {
         dbHelper = new MySQLiteHelper(context);
@@ -226,17 +225,16 @@ public class DataBaseConnection {
     }
 
     public BiMap<String, Integer> getInstallers() {
-        if(installers.size() == 0) {
-            Cursor cursor = database.query(TABLE_INSTALLERS, allInstallersColumns, null, null, null, null, null);
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                int installerId = cursor.getInt(cursor.getColumnIndex(INSTALLERS_COLUMN_ID));
-                String installer = cursor.getString(cursor.getColumnIndex(INSTALLERS_COLUMN_NAME));
-                installers.put(installer, installerId);
-                cursor.moveToNext();
-            }
-            cursor.close();
+        BiMap<String, Integer> installers = HashBiMap.create();
+        Cursor cursor = database.query(TABLE_INSTALLERS, allInstallersColumns, null, null, null, null, null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            int installerId = cursor.getInt(cursor.getColumnIndex(INSTALLERS_COLUMN_ID));
+            String installer = cursor.getString(cursor.getColumnIndex(INSTALLERS_COLUMN_NAME));
+            installers.put(installer, installerId);
+            cursor.moveToNext();
         }
+        cursor.close();
         return installers;
     }
 
@@ -311,5 +309,20 @@ public class DataBaseConnection {
         values.put(INSTALLERS_COLUMN_NAME, newInstaller);
         //return 1 == database.update(TABLE_INSTALLERS, values, INSTALLERS_COLUMN_NAME + " = " + oldInstaller, null);
         database.execSQL("UPDATE " + TABLE_INSTALLERS + " SET " + INSTALLERS_COLUMN_NAME + " = '" + newInstaller + "' WHERE " + INSTALLERS_COLUMN_NAME + " = '" + oldInstaller + "'");
+    }
+
+    public List<String> getAllClients() {
+        List<String> clients = new ArrayList<>();
+        Cursor cursor = database.query(true, TABLE_ENTRIES, new String[] {COLUMN_CLIENT}, null, null, null, null, null, null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
+            clients.add(client.trim());
+            cursor.moveToNext();
+        }
+        cursor.close();
+        // remove duplicates
+        clients = new ArrayList<>(new LinkedHashSet<>(clients));
+        return clients;
     }
 }

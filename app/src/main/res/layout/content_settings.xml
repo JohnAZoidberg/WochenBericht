@@ -12,17 +12,28 @@
     tools:showIn="@layout/activity_settings"
     tools:context="de.struckmeierfliesen.ds.wochenbericht.SettingsActivity">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/personal_information"
+        android:id="@+id/personalDataLabel"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="4dp" />
+
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/editFirstName"
         android:inputType="text"
         android:hint="@string/firstName"
-        android:layout_below="@+id/personalDataView"
+        android:layout_below="@id/personalDataLabel"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"/>
 
     <EditText
         android:layout_width="wrap_content"
@@ -30,12 +41,24 @@
         android:inputType="textPersonName"
         android:id="@+id/editName"
         android:hint="@string/name"
-        android:layout_below="@+id/editFirstName"
+        android:layout_below="@id/editFirstName"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/editFirstName"
-        android:layout_alignEnd="@+id/editFirstName"
+        android:layout_alignRight="@id/editFirstName"
+        android:layout_alignEnd="@id/editFirstName"
         android:layout_marginTop="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/reminder"
+        android:id="@+id/reminderLabel"
+        android:layout_below="@id/editName"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginBottom="4dp" />
 
     <Switch
         android:layout_width="wrap_content"
@@ -43,49 +66,19 @@
         android:text="@string/remind_daily"
         android:id="@+id/reminderSwitch"
         android:checked="false"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/default_reminder_time"
-        android:id="@+id/setTimeButton"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="@string/personal_information"
-        android:id="@+id/personalDataView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="4dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="@string/reminder"
-        android:id="@+id/textView"
-        android:layout_below="@+id/editName"
+        android:layout_below="@+id/reminderLabel"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginBottom="@dimen/activity_vertical_margin" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="@string/database"
-        android:id="@+id/textView2"
-        android:layout_below="@+id/setTimeButton"
+        android:id="@+id/databaseLabel"
+        android:layout_below="@id/reminderSwitch"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginBottom="4dp" />
@@ -93,29 +86,40 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/default_reminder_time"
+        android:id="@+id/setTimeButton"
+        android:layout_above="@id/databaseLabel"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:visibility="gone"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/export"
         android:id="@+id/exportButton"
-        android:layout_below="@+id/textView2"
+        android:layout_below="@id/databaseLabel"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="@dimen/activity_vertical_margin"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/import_"
         android:id="@+id/importButton"
-        android:layout_alignTop="@+id/exportButton"
-        android:layout_toRightOf="@+id/exportButton"
-        android:layout_toEndOf="@+id/exportButton" />
+        android:layout_alignTop="@id/exportButton"
+        android:layout_toRightOf="@id/exportButton"
+        android:layout_toEndOf="@id/exportButton" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/delete"
         android:id="@+id/dropDbButton"
-        android:layout_alignTop="@+id/importButton"
-        android:layout_toRightOf="@+id/importButton"
-        android:layout_toEndOf="@+id/importButton"
+        android:layout_alignTop="@id/importButton"
+        android:layout_toRightOf="@id/importButton"
+        android:layout_toEndOf="@id/importButton"
         android:visibility="gone"/>
 
     <Button
@@ -123,9 +127,9 @@
         android:layout_height="wrap_content"
         android:text="Update"
         android:id="@+id/updateButton"
-        android:layout_alignTop="@+id/importButton"
-        android:layout_toRightOf="@+id/importButton"
-        android:layout_toEndOf="@+id/importButton"
+        android:layout_alignTop="@id/importButton"
+        android:layout_toRightOf="@id/importButton"
+        android:layout_toEndOf="@id/importButton"
         android:visibility="visible"/>
 
     <TextView

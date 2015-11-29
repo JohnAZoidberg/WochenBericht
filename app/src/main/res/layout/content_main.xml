@@ -61,7 +61,7 @@
         android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin" />
 
-    <de.struckmeierfliesen.ds.wochenbericht.ClearableEditText
+    <de.struckmeierfliesen.ds.wochenbericht.ClearableAutoCompleteTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
@@ -71,9 +71,11 @@
         android:hint="@string/client"
         android:layout_alignParentBottom="true"
         android:layout_toLeftOf="@+id/button"
+        android:layout_toStartOf="@+id/button"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginRight="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin" />

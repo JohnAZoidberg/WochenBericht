@@ -44,7 +44,7 @@
         <item quantity="other">%s Stunden</item>
     </plurals>
     <string name="zero_hours">0:00 Stunden</string>
-    <string name="app_version" translatable="false">Alpha 0.3.1</string>
+    <string name="app_version" translatable="false">Alpha 0.3.2</string>
     <string name="really_import">Wirklich importieren?</string>
     <string name="import_explanation">Wenn du importierst werden die alten Einträge gelöscht!</string>
 </resources>

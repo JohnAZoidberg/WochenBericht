@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -45,13 +46,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int SET_ENTRY_DATE = 0;
     private static final int SET_SHOWN_DATE = 1;
     private static final int NOT_EDITING = -1;
-    private EditText clientEdit;
+    private AutoCompleteTextView clientEdit;
     private EditText workEdit;
     private int duration = -1;
     private int installerId = -1;
     private DeletableArrayAdapter<String> installerAdapter;
     private BiMap<String, Integer> installers = HashBiMap.create();
-    private List<String> installerStrings = new ArrayList<String>(); // TODO use BiMap instead
+    private List<String> installerStrings = new ArrayList<>(); // TODO use BiMap instead
     private SelectAgainSpinner installerSpinner;
     private Spinner durationSpinner;
     private TextView changeDateButton;
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
         // findViews
         saveButton = (Button) findViewById(R.id.button);
-        clientEdit = (EditText) findViewById(R.id.editClient);
+        clientEdit = (AutoCompleteTextView) findViewById(R.id.editClient);
         workEdit = (EditText) findViewById(R.id.editWork);
         totalDurationView = (TextView) findViewById(R.id.totalHours);
 
@@ -216,6 +217,14 @@ public class MainActivity extends AppCompatActivity {
         });
         //dayViewPager.setCurrentItem(50);
 
+        // set up clientEdit
+
+        List<String> clients = getClients();
+        ArrayAdapter<String> clientEditAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, clients);
+        clientEdit.setAdapter(clientEditAdapter);
+
+        // set up Fab which is only to be used while debugging
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -244,6 +253,13 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    private List<String> getClients() {
+        dbConn.open();
+        List<String> allClients = dbConn.getAllClients();
+        dbConn.close();
+        return allClients;
     }
 
     @Override
@@ -319,9 +335,9 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
                         AsyncReportCreator runner = new AsyncReportCreator();
-                        runner.execute(editComment.getText().toString(),
-                                editPageNumber.getText().toString(),
-                                editYearNumber.getText().toString());
+                        runner.execute(editComment.getText().toString().trim(),
+                                editPageNumber.getText().toString().trim(),
+                                editYearNumber.getText().toString().trim());
                     }
                 })
                 .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {

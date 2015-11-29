@@ -133,7 +133,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         // TODO to be deleted in future versions
-        Button updateButton = (Button) findViewById(R.id.dropDbButton);
+        Button updateButton = (Button) findViewById(R.id.updateButton);
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -174,10 +174,12 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void loadNotifSettings() {
-        reminderSwitch.setChecked(sharedPrefs.getBoolean("remind", false));
+        boolean remind = sharedPrefs.getBoolean("remind", false);
+        reminderSwitch.setChecked(remind);
         hourOfDay = sharedPrefs.getInt("hourOfDay", 12);
         minute = sharedPrefs.getInt("minute", 0);
         setTimeButton.setText(getString(R.string.timeDivider, hourOfDay, ((minute < 10) ? "0" : "") + minute));
+        setTimeButton.setVisibility(remind ? View.VISIBLE : View.GONE);
     }
 
     private void enableAlarm(boolean enable) {
@@ -194,8 +196,10 @@ public class SettingsActivity extends AppCompatActivity {
         if (enable) {
             alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
             Util.alert(this, "Alarm set at " + Util.formatDate(cal.getTime()));
+            setTimeButton.setVisibility(View.VISIBLE);
         } else {
             Util.alert(this, "Alarm disabled!");
+            setTimeButton.setVisibility(View.GONE);
         }
     }
 
