@@ -37,16 +37,16 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 public class ClearableEditText extends EditText implements OnTouchListener, OnFocusChangeListener, TextWatcherAdapter.TextWatcherListener {
 
 
-    public interface Listener {
+    public interface TextClearListener {
         void didClearText();
     }
 
-    public void setListener(Listener listener) {
-        this.listener = listener;
+    public void setTextClearListener(TextClearListener textClearListener) {
+        this.textClearListener = textClearListener;
     }
 
     private Drawable xD;
-    private Listener listener;
+    private TextClearListener textClearListener;
     private static double DRAWABLE_MULTIPLIER = 1;
 
     public ClearableEditText(Context context) {
@@ -84,8 +84,8 @@ public class ClearableEditText extends EditText implements OnTouchListener, OnFo
             if (tappedX) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     setText("");
-                    if (listener != null) {
-                        listener.didClearText();
+                    if (textClearListener != null) {
+                        textClearListener.didClearText();
                     }
                 }
                 return true;
