@@ -253,8 +253,8 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void saveNames() {
-        String firstName = editFirstName.getText().toString();
-        String name = editName.getText().toString();
+        String firstName = editFirstName.getText().toString().trim();
+        String name = editName.getText().toString().trim();
 
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString("firstName", firstName);
