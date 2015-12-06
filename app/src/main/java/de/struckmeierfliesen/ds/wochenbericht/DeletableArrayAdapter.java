@@ -48,7 +48,7 @@ public class DeletableArrayAdapter<T> extends ArrayAdapter<T>  {
             @Override
             public void onClick(View v) {
                 if(deleteListener != null) deleteListener.onDelete(position, v);
-                    else Util.alert(view.getContext(),
+                    else Dialog.alert(view.getContext(),
                         "Position " + position + " has been clicked, but no DeleteListener attached");
             }
         });

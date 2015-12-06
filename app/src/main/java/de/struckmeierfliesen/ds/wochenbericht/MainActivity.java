@@ -3,7 +3,6 @@ package de.struckmeierfliesen.ds.wochenbericht;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -42,7 +41,6 @@ import com.google.common.collect.HashBiMap;
 
 import org.apache.pdfbox.exceptions.COSVisitorException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,8 +50,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-
-import static android.provider.MediaStore.Images.Media;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -375,33 +371,6 @@ public class MainActivity extends AppCompatActivity {
         return res;
     }
 
-    private String getLastImagePath() {
-        String photoPath = null;
-        Cursor cursor = getContentResolver().query(Media.EXTERNAL_CONTENT_URI, new String[]{Media.DATA, Media.DATE_ADDED, MediaStore.Images.ImageColumns.ORIENTATION}, Media.DATE_ADDED, null, "date_added ASC");
-        if( cursor != null && cursor.moveToFirst()) {
-            do {
-                Uri uri = Uri.parse(cursor.getString(cursor.getColumnIndex(Media.DATA)));
-                photoPath = uri.toString();
-            } while (cursor.moveToNext());
-            cursor.close();
-        }
-        return photoPath;
-    }
-
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
-        return Uri.parse(path);
-    }
-
-    public String getRealPathFromURI(Uri uri) {
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-        cursor.moveToFirst();
-        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-        return cursor.getString(idx);
-    }
-
     private List<String> getClients() {
         dbConn.open();
         List<String> allClients = dbConn.getAllClients();
@@ -456,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (editComment.length() > 2 * ReportGenerator.CUTOFF) {
-                            Util.alert(MainActivity.this, getString(R.string.comment_too_long));
+                            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(MainActivity.this, getString(R.string.comment_too_long));
                             return;
                         }
                         AsyncReportCreator runner = new AsyncReportCreator();
@@ -514,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
         String workString = workEdit.getText().toString().trim();
 
         if(workString.length() == 0 || clientName.length() == 0 || duration == -1 || installerId == -1) {
-            Util.alert(this, getString(R.string.please_enter_input));
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.please_enter_input));
             return null;
         }
 
@@ -542,8 +511,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void setTotalDuration(int durationCode) {
         String duration = Util.convertDuration(durationCode);
-        if (durationCode >=88 ) Util.alert(this, getString(R.string.over_twentyfour));
-        else if (durationCode >=48 ) Util.alert(this, getString(R.string.over_twelve));
+        if (durationCode >=88 ) de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.over_twentyfour));
+        else if (durationCode >=48 ) de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.over_twelve));
         totalDurationView.setText(getResources().getQuantityString(
                 R.plurals.xHours, duration.equals("1:00") ? 1 : 2, duration));
     }
@@ -587,16 +556,16 @@ public class MainActivity extends AppCompatActivity {
         if (Math.abs(dayDifference) < 50) {
             dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2 - dayDifference);
         } else {
-            Util.alert(this, getString(R.string.fifty_day_limit));
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.fifty_day_limit));
         }
     }
 
     public void displayAddInstallerDialog() {
-        Util.askForInput(this, R.string.add_installer, R.string.add, new Util.OnInputSubmitListener<String>() {
+        de.struckmeierfliesen.ds.wochenbericht.Dialog.askForInput(this, R.string.add_installer, R.string.add, new Util.OnInputSubmitListener<String>() {
             @Override
             public void onSubmit(View v, String input) {
                 if (input.isEmpty()) {
-                    Util.alert(MainActivity.this, getString(R.string.please_enter_input));
+                    de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(MainActivity.this, getString(R.string.please_enter_input));
                     return;
                 }
                 MainActivity.this.addInstaller(input);
@@ -605,7 +574,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void askForEntryDeleteConfirmation(final Entry entry) {
-        Util.askForConfirmation(this, R.string.really_delete, new View.OnClickListener() {
+        de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(this, R.string.really_delete, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 stopEditing(false);
@@ -615,7 +584,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void askForInstallerDeleteConfirmation(final String installer) {
-        Util.askForConfirmation(this, R.string.really_delete, R.string.all_installers_will_be_deleted, new View.OnClickListener() {
+        de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(this, R.string.really_delete, R.string.all_installers_will_be_deleted, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int installerId = installers.get(installer);
@@ -627,7 +596,7 @@ public class MainActivity extends AppCompatActivity {
                     installerAdapter.notifyDataSetChanged();
                     reloadDayFragments();
                 }
-                Util.alert(MainActivity.this, "Installer " + installer + (deleted ? " " : " un") + "sucessfully deleted!");
+                de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(MainActivity.this, "Installer " + installer + (deleted ? " " : " un") + "sucessfully deleted!");
             }
         });
     }

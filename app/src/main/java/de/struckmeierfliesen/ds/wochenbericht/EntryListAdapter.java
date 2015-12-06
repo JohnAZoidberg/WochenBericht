@@ -89,12 +89,13 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
             this.binding = binding;
             binding.entriesList.setOnClickListener(this);
             binding.entriesList.setOnLongClickListener(this);
+
             binding.entryImageView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     Entry entry = items.get(getAdapterPosition());
                     Activity activity = (Activity) v.getContext();
-                    Util.selectImage(activity, entry);
+                    Dialog.selectImage(activity, entry);
                     return true;
                 }
             });
@@ -105,11 +106,11 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
                     final String picturePath = entry.getPicturePath();
                     Activity activity = (Activity) v.getContext();
                     if (picturePath == null || !new File(picturePath).isFile()) {
-                        Util.selectImage(activity, entry);
+                        Dialog.selectImage(activity, entry);
                     } else {
                         Intent showPicIntent = new Intent(activity, PictureViewerActivity.class);
                         showPicIntent.putExtra("fileName", picturePath);
-                        showPicIntent.putExtra("title", "Picture Title "  + entry);
+                        showPicIntent.putExtra("title", "Picture Title " + entry);
                         activity.startActivity(showPicIntent);
                     }
                 }

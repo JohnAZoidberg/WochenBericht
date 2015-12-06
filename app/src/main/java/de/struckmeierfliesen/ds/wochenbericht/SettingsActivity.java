@@ -106,7 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
         importButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Util.askForConfirmation(getApplicationContext(),
+                de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(getApplicationContext(),
                         getString(R.string.really_import), getString(R.string.import_explanation), new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -137,19 +137,19 @@ public class SettingsActivity extends AppCompatActivity {
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Util.askForConfirmation(SettingsActivity.this, "Datenbank wirklich updaten?",
+                de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(SettingsActivity.this, "Datenbank wirklich updaten?",
                         "Du darfst die Datenbank nur einmal updaten und das auch nur," +
                                 "wenn nach dem App Update deine Zeiten" +
                                 "der Dauer für die Einträge nicht mehr stimmen!",
                         new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dbConn.open();
-                        dbConn.upgradeDurations();
-                        dbConn.close();
-                        Util.alert(getApplicationContext(), "Update durchgeführt!");
-                    }
-                });
+                            @Override
+                            public void onClick(View v) {
+                                dbConn.open();
+                                dbConn.upgradeDurations();
+                                dbConn.close();
+                                de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(getApplicationContext(), "Update durchgeführt!");
+                            }
+                        });
             }
         });
     }
@@ -195,10 +195,10 @@ public class SettingsActivity extends AppCompatActivity {
         alarmManager.cancel(pendingIntent);
         if (enable) {
             alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-            Util.alert(this, "Alarm set at " + Util.formatDate(cal.getTime()));
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, "Alarm set at " + Util.formatDate(cal.getTime()));
             setTimeButton.setVisibility(View.VISIBLE);
         } else {
-            Util.alert(this, "Alarm disabled!");
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, "Alarm disabled!");
             setTimeButton.setVisibility(View.GONE);
         }
     }
@@ -215,7 +215,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(pendingIntent);
-        Util.alert(context, "Alarm disabled!");
+        de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(context, "Alarm disabled!");
     }
 
     public static class TimePickerFragment extends DialogFragment
