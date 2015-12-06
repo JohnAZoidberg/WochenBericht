@@ -12,6 +12,7 @@ public class Entry {
     public int installerId;
     public String work;
     public String installer = null;
+    private String picturePath = null;
 
     public Entry(String client, Date date, int duration, int installerId, String work) {
         this.id = id;
@@ -52,5 +53,13 @@ public class Entry {
         if(this.installer != null) installer = this.installer;
         return "\"" + work + "\" ( " + Util.formatDate(date) + ")" +
                 "bei " +client + " mit " + getInstaller() + "(" + installer + ")";
+    }
+
+    public String getPicturePath() {
+        return picturePath;
+    }
+
+    public void setPicturePath(String picturePath) {
+        this.picturePath = picturePath;
     }
 }

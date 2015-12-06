@@ -9,8 +9,8 @@ android {
         applicationId "de.struckmeierfliesen.ds.wochenbericht"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 6
-        versionName "Alpha 0.3.3"
+        versionCode 7
+        versionName "Alpha 0.4.0"
     }
     buildTypes {
         release {
@@ -28,4 +28,6 @@ dependencies {
     compile 'com.google.guava:guava:18.0'
     compile 'com.android.support:recyclerview-v7:23.1.0'
     compile 'org.apache.commons:commons-lang3:3.0'
+    compile 'com.github.chrisbanes.photoview:library:1.2.3'
+    compile 'com.squareup.picasso:picasso:2.5.2'
 }

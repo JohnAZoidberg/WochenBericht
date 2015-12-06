@@ -1,12 +1,15 @@
 package de.struckmeierfliesen.ds.wochenbericht;
 
 
+import android.app.Activity;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.File;
 import java.util.List;
 
 import de.struckmeierfliesen.ds.wochenbericht.databinding.EntriesListBinding;
@@ -86,6 +89,31 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
             this.binding = binding;
             binding.entriesList.setOnClickListener(this);
             binding.entriesList.setOnLongClickListener(this);
+            binding.entryImageView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Entry entry = items.get(getAdapterPosition());
+                    Activity activity = (Activity) v.getContext();
+                    Util.selectImage(activity, entry);
+                    return true;
+                }
+            });
+            binding.entryImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Entry entry = items.get(getAdapterPosition());
+                    final String picturePath = entry.getPicturePath();
+                    Activity activity = (Activity) v.getContext();
+                    if (picturePath == null || !new File(picturePath).isFile()) {
+                        Util.selectImage(activity, entry);
+                    } else {
+                        Intent showPicIntent = new Intent(activity, PictureViewerActivity.class);
+                        showPicIntent.putExtra("fileName", picturePath);
+                        showPicIntent.putExtra("title", "Picture Title "  + entry);
+                        activity.startActivity(showPicIntent);
+                    }
+                }
+            });
         }
 
         public void bindConnection(Entry entry) {

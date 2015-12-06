@@ -47,4 +47,8 @@
     <string name="app_version" translatable="false">Alpha 0.3.2</string>
     <string name="really_import">Wirklich importieren?</string>
     <string name="import_explanation">Wenn du importierst werden die alten Einträge gelöscht!</string>
+    <string name="select_file">Datei auswählen</string>
+    <string name="take_photo">Bild aufnehmen</string>
+    <string name="choose_from_library">Von Galerie auswählen</string>
+    <string name="add_photo">Photo hinzufügen!</string>
 </resources>

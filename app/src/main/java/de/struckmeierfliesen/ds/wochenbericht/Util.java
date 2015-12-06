@@ -1,8 +1,13 @@
 package de.struckmeierfliesen.ds.wochenbericht;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.databinding.BindingAdapter;
+import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
@@ -12,17 +17,30 @@ import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
+    public static int lastEntryPictureClicked = -1;
+    public static final String TEMP_IMAGE = "azubiLogTemp.jpg";
+
     public static void alert(Context context, String msg) {
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+        alert(context, msg, false);
+    }
+    public static void alert(Context context, String msg, boolean longLength) {
+        Toast.makeText(context, msg,
+                longLength ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT
+        ).show();
     }
 
     public static String convertDuration(int duration, String divider) {
@@ -110,6 +128,11 @@ public class Util {
 
     public static File newFile(String fileName) {
         File path = Environment.getExternalStorageDirectory();
+        return new File(path, fileName);
+    }
+
+    public static File newPictureFile(String fileName) {
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         return new File(path, fileName);
     }
 
@@ -207,7 +230,7 @@ public class Util {
             @Override
             public void onShow(final DialogInterface d) {
                 Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                b.setOnClickListener( new View.OnClickListener() {
+                b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         onPositiveListener.onSubmit(v, input.getText().toString().trim());
@@ -239,7 +262,84 @@ public class Util {
         return calendar.getTime();
     }
 
+    public static File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "AzubiApp_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        return image;
+    }
+
+    public static int addPictureToEntry(DataBaseConnection dbConn, int entryId, String pictureFile) {
+        dbConn.open();
+        int rowsAffected = dbConn.addPictureToEntry(entryId, pictureFile);
+        dbConn.close();
+        return rowsAffected;
+    }
+
+    public static int addPictureToEntry(Activity activity, int entryId, String pictureFile) {
+        DataBaseConnection dbConn = new DataBaseConnection(activity);
+        return addPictureToEntry(dbConn, entryId, pictureFile);
+
+    }
+
     interface OnInputSubmitListener<T> {
         void onSubmit(View v, T input);
+    }
+
+    @BindingAdapter("app:imagePath")
+    public static void loadImage(ImageView view, String imagePath) {
+        if (imagePath != null  && !imagePath.isEmpty()) {
+            String absolutePath = new File(imagePath).getAbsolutePath();
+            Picasso.with(view.getContext()).load(new File(absolutePath)).error(R.drawable.no_pic).into(view);
+        }
+    }
+
+    public static void selectImage(final Activity activity, final Entry entry) {
+        final CharSequence[] items = { activity.getString(R.string.take_photo), activity.getString(R.string.choose_from_library), activity.getString(R.string.cancel) };
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
+        builder.setTitle(activity.getString(R.string.add_photo));
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                if (items[item].equals(activity.getString(R.string.take_photo))) {
+                    selectImageIntent(true, entry, activity);
+                } else if (items[item].equals(activity.getString(R.string.choose_from_library))) {
+                    selectImageIntent(false, entry, activity);
+                } else if (items[item].equals(activity.getString(R.string.cancel))) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+    }
+
+    public static void selectImageIntent(boolean fromCamera, Entry entry, Activity activity) {
+        lastEntryPictureClicked = entry.id;
+        if (fromCamera) {
+            /*String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String fileName = "AzubiLog_" + entry.id + "_" + timeStamp + ".png";
+            File image = Util.newPictureFile(fileName);
+            Uri uriSavedImage = Uri.fromFile(image);*/
+
+            File f = new File(android.os.Environment.getExternalStorageDirectory(), Util.TEMP_IMAGE);
+            Uri uriSavedImage = Uri.fromFile(f);
+
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
+            activity.startActivityForResult(intent, MainActivity.REQUEST_CAMERA);
+        }else {
+            Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            intent.setType("image/*");
+            activity.startActivityForResult(Intent.createChooser(intent, activity.getString(R.string.select_file)), MainActivity.SELECT_FILE);
+        }
     }
 }

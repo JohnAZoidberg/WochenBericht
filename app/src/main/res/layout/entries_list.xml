@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="entry" type="de.struckmeierfliesen.ds.wochenbericht.Entry"/>
+        <variable name="entry" type="de.struckmeierfliesen.ds.wochenbericht.Entry" />
     </data>
     <RelativeLayout
         android:layout_width="match_parent"
@@ -30,15 +31,28 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp" />
 
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/entryImageView"
+            android:layout_alignTop="@+id/durationView"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/no_pic"
+            android:visibility="visible"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            app:imagePath="@{entry.picturePath}" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{entry.duration}"
             android:id="@+id/durationView"
             android:layout_alignBottom="@id/workView"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:textColor="@android:color/black" />
+            android:textColor="@android:color/black"
+            android:layout_toLeftOf="@id/entryImageView"
+            android:layout_toStartOf="@id/entryImageView" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -46,8 +60,8 @@
             android:text="@{entry.installer}"
             android:id="@+id/installerView"
             android:layout_alignTop="@+id/clientView"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
+            android:layout_toLeftOf="@id/entryImageView"
+            android:layout_toStartOf="@id/entryImageView" />
 
         <TextView
             android:layout_width="wrap_content"

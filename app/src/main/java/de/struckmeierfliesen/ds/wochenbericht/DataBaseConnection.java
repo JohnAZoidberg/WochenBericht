@@ -27,6 +27,7 @@ import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DATE;
 import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DURATION;
 import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_ID;
 import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_INSTALLER_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_PICTURE_PATH;
 import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_WORK;
 import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.DATABASE_NAME;
 import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.INSTALLERS_COLUMN_ID;
@@ -45,6 +46,7 @@ public class DataBaseConnection {
             COLUMN_DURATION,
             COLUMN_INSTALLER_ID,
             COLUMN_WORK,
+            COLUMN_PICTURE_PATH,
     };
 
     private final String[] allInstallersColumns = {
@@ -200,6 +202,7 @@ public class DataBaseConnection {
         int duration = cursor.getInt(cursor.getColumnIndex(COLUMN_DURATION));
         int installerId = cursor.getInt(cursor.getColumnIndex(COLUMN_INSTALLER_ID));
         String work = cursor.getString(cursor.getColumnIndex(COLUMN_WORK));
+        String picturePath = cursor.getString(cursor.getColumnIndex(COLUMN_PICTURE_PATH));
 
         Entry entry = new Entry(
                 client,
@@ -209,6 +212,8 @@ public class DataBaseConnection {
                 work
         );
         entry.id = id;
+        if (picturePath == null) Log.d("database-error-mee", "whaaaat");
+        entry.setPicturePath(picturePath);
         return entry;
     }
 
@@ -324,5 +329,11 @@ public class DataBaseConnection {
         // remove duplicates
         clients = new ArrayList<>(new LinkedHashSet<>(clients));
         return clients;
+    }
+
+    public int addPictureToEntry(int entryId, String pictureFile) {
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PICTURE_PATH, pictureFile);
+        return database.update(TABLE_ENTRIES, values, COLUMN_ID + " = " + entryId, null);
     }
 }

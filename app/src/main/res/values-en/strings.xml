@@ -46,4 +46,8 @@
     <string name="zero_hours">0:00 hours</string>
     <string name="really_import">Really import?</string>
     <string name="import_explanation">If you import the data you will lose all the old entries.</string>
+    <string name="take_photo">Take photo</string>
+    <string name="choose_from_library">Pick from gallery</string>
+    <string name="add_photo">Add photo!</string>
+    <string name="select_file">Select File</string>
 </resources>

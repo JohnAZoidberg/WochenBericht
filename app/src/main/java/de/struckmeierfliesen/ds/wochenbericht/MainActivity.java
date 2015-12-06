@@ -3,11 +3,17 @@ package de.struckmeierfliesen.ds.wochenbericht;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
@@ -18,6 +24,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,13 +42,23 @@ import com.google.common.collect.HashBiMap;
 
 import org.apache.pdfbox.exceptions.COSVisitorException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static android.provider.MediaStore.Images.Media;
+
 public class MainActivity extends AppCompatActivity {
+
+    public static final int SELECT_FILE = 0;
+    public static final int REQUEST_CAMERA = 1;
 
     private static final int SET_ENTRY_DATE = 0;
     private static final int SET_SHOWN_DATE = 1;
@@ -63,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ViewPager dayViewPager;
     private DayAdapter dayAdapter;
+    ViewPager.OnPageChangeListener onPageChangeListener;
 
     // -1 means editing is off and if editingId is on this variable holds the id of the entry being edited
     private int editingId = NOT_EDITING;
@@ -191,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         dayViewPager = (ViewPager) findViewById(R.id.listView);
         dayViewPager.setAdapter(dayAdapter);
         dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2);
-        dayViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        onPageChangeListener = new ViewPager.OnPageChangeListener() {
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -200,13 +218,18 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                stopEditing(false);
+
                 EntryListFragment registeredFragment = dayAdapter.getRegisteredFragment(position);
+                if (registeredFragment == null) {
+                    Log.d("Testing", "registeredFragment == null in onPageSelected (MainActivity)");
+                    return;
+                }
+
                 int hours = registeredFragment.getTotalHours();
                 setTotalDuration(hours);
 
                 Date selectedDate = registeredFragment.getDate();
-
-                stopEditing(false);
                 setDate(selectedDate);
             }
 
@@ -214,7 +237,8 @@ public class MainActivity extends AppCompatActivity {
             public void onPageScrollStateChanged(int state) {
 
             }
-        });
+        };
+        dayViewPager.addOnPageChangeListener(onPageChangeListener);
         //dayViewPager.setCurrentItem(50);
 
         // set up clientEdit
@@ -240,8 +264,15 @@ public class MainActivity extends AppCompatActivity {
                         dayViewPager.setCurrentItem(Integer.parseInt(input));
                     }
                 });*/
-                SettingsActivity.disableAlarm(MainActivity.this);
-                Util.alert(MainActivity.this, "Alarm cancelled!");
+
+                //SettingsActivity.disableAlarm(MainActivity.this);
+                //Util.alert(MainActivity.this, "Alarm cancelled!");
+
+
+                Intent showPicIntent = new Intent(MainActivity.this, PictureViewerActivity.class);
+                showPicIntent.putExtra("fileName", Util.newPictureFile("statistics.png").getAbsolutePath());
+                showPicIntent.putExtra("title", "My Statistics");
+                startActivity(showPicIntent);
             }
         });
 
@@ -253,13 +284,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-    }
-
-    private List<String> getClients() {
-        dbConn.open();
-        List<String> allClients = dbConn.getAllClients();
-        dbConn.close();
-        return allClients;
     }
 
     @Override
@@ -282,7 +306,108 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && Util.lastEntryPictureClicked != -1) {
+            if (requestCode == REQUEST_CAMERA) {
+                String picturePath = null;
+
+                File f = new File(Environment.getExternalStorageDirectory().toString());
+                for (File temp : f.listFiles()) {
+                    if (temp.getName().equals(Util.TEMP_IMAGE)) {
+                        f = temp;
+                        break;
+                    }
+                }
+                try {
+                    BitmapFactory.Options btmapOptions = new BitmapFactory.Options();
+                    Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath(), btmapOptions);
+                    f.delete();
+
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String fileName = "AzubiLog_" + Util.lastEntryPictureClicked + "_" + timeStamp + ".png";
+                    File file = Util.newPictureFile(fileName);
+
+                    OutputStream fOut = null;
+                    try {
+                        fOut = new FileOutputStream(file);
+                        bm.compress(Bitmap.CompressFormat.JPEG, 85, fOut);
+                        fOut.flush();
+                        fOut.close();
+                        picturePath = file.getAbsolutePath();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Util.addPictureToEntry(dbConn, Util.lastEntryPictureClicked, picturePath);
+            } else if (requestCode == SELECT_FILE) {
+                Uri selectedImageUri = data.getData();
+                String picturePath = getPath(selectedImageUri);
+                Util.addPictureToEntry(dbConn, Util.lastEntryPictureClicked, picturePath);
+            }
+            reloadDayFragments();
+        }
+        Util.lastEntryPictureClicked = -1;
+    }
+
     // own methods
+
+    private void reloadDayFragments() {
+        // TODO use different method to reload all pages
+        dayViewPager.setAdapter(dayAdapter);
+        dayViewPager.addOnPageChangeListener(null);
+        showDate(date);
+        dayViewPager.addOnPageChangeListener(onPageChangeListener);
+    }
+
+    public String getPath(Uri uri) {
+        String res = null;
+        String[] proj = { MediaStore.Images.Media.DATA };
+        Cursor cursor = getContentResolver().query(uri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
+    }
+
+    private String getLastImagePath() {
+        String photoPath = null;
+        Cursor cursor = getContentResolver().query(Media.EXTERNAL_CONTENT_URI, new String[]{Media.DATA, Media.DATE_ADDED, MediaStore.Images.ImageColumns.ORIENTATION}, Media.DATE_ADDED, null, "date_added ASC");
+        if( cursor != null && cursor.moveToFirst()) {
+            do {
+                Uri uri = Uri.parse(cursor.getString(cursor.getColumnIndex(Media.DATA)));
+                photoPath = uri.toString();
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return photoPath;
+    }
+
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
+
+    public String getRealPathFromURI(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+        return cursor.getString(idx);
+    }
+
+    private List<String> getClients() {
+        dbConn.open();
+        List<String> allClients = dbConn.getAllClients();
+        dbConn.close();
+        return allClients;
+    }
 
     private class AsyncReportCreator extends AsyncTask<String, String, String> {
         ProgressDialog dialog;
@@ -452,13 +577,17 @@ public class MainActivity extends AppCompatActivity {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, day);
             Date date = calendar.getTime();
-            int dayDifference = Util.getDayDifference(new Date(), date);
             MainActivity mainActivity = (MainActivity) getActivity();
-            if (Math.abs(dayDifference) < 50) {
-                mainActivity.dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2 - dayDifference);
-            } else {
-                Util.alert(mainActivity, mainActivity.getString(R.string.fifty_day_limit));
-            }
+            mainActivity.showDate(date);
+        }
+    }
+
+    private void showDate(Date date) {
+        int dayDifference = Util.getDayDifference(new Date(), date);
+        if (Math.abs(dayDifference) < 50) {
+            dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2 - dayDifference);
+        } else {
+            Util.alert(this, getString(R.string.fifty_day_limit));
         }
     }
 
@@ -496,8 +625,7 @@ public class MainActivity extends AppCompatActivity {
                 if (deleted) {
                     installerAdapter.remove(installer);
                     installerAdapter.notifyDataSetChanged();
-                    // TODO use different method to reload all pages
-                    dayViewPager.setAdapter(dayAdapter);
+                    reloadDayFragments();
                 }
                 Util.alert(MainActivity.this, "Installer " + installer + (deleted ? " " : " un") + "sucessfully deleted!");
             }
