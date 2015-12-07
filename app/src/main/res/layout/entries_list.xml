@@ -38,11 +38,12 @@
             android:layout_alignTop="@+id/durationView"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:src="@drawable/no_pic"
             android:visibility="visible"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
-            app:imagePath="@{entry.picturePath}" />
+            android:scaleType="center"
+            app:imagePath="@{entry.picturePath}"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
 
         <TextView
             android:layout_width="wrap_content"

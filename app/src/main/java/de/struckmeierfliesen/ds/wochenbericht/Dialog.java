@@ -92,8 +92,20 @@ public class Dialog {
         dialog.show();
     }
 
-    public static void selectImage(final Activity activity, final Entry entry) {
-        final CharSequence[] items = { activity.getString(R.string.take_photo), activity.getString(R.string.choose_from_library), activity.getString(R.string.cancel) };
+    public static void selectImage(final Activity activity, final Entry entry, final Runnable runner) {
+        final CharSequence[] items;
+        if (runner != null) {
+            items = new String[] {
+                    activity.getString(R.string.take_photo),
+                    activity.getString(R.string.choose_from_library),
+                    activity.getString(R.string.delete)
+            };
+        } else {
+            items = new String[] {
+                    activity.getString(R.string.take_photo),
+                    activity.getString(R.string.choose_from_library)
+            };
+        }
 
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
         builder.setTitle(activity.getString(R.string.add_photo));
@@ -104,11 +116,17 @@ public class Dialog {
                     Util.selectImageIntent(true, entry, activity);
                 } else if (items[item].equals(activity.getString(R.string.choose_from_library))) {
                     Util.selectImageIntent(false, entry, activity);
+                } else if (items[item].equals(activity.getString(R.string.delete))) {
+                    runner.run();
                 } else if (items[item].equals(activity.getString(R.string.cancel))) {
                     dialog.dismiss();
                 }
             }
         });
         builder.show();
+    }
+
+    public static void selectImage(final Activity activity, final Entry entry) {
+        selectImage(activity, entry, null);
     }
 }

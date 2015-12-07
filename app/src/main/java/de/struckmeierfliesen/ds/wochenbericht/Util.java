@@ -1,12 +1,14 @@
 package de.struckmeierfliesen.ds.wochenbericht;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.databinding.BindingAdapter;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.format.DateFormat;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -16,11 +18,14 @@ import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
     public static int lastEntryPictureClicked = -1;
     public static final String TEMP_IMAGE = "azubiLogTemp.jpg";
+    private static float oneDipPixels = -1;
+    private static Random randomGenerator = new Random();
 
     public static String convertDuration(int duration, String divider) {
         String hours =  String.valueOf((int) Math.floor(duration / 4d));
@@ -177,6 +182,17 @@ public class Util {
 
     }
 
+    public static void deletePictureFromEntry(DataBaseConnection dbConn, int entryId) {
+        dbConn.open();
+        dbConn.deletePictureFromEntry(entryId);
+        dbConn.close();
+    }
+
+    public static void deletePictureFromEntry(Activity activity, int entryId) {
+        DataBaseConnection dbConn = new DataBaseConnection(activity);
+        deletePictureFromEntry(dbConn, entryId);
+    }
+
     interface OnInputSubmitListener<T> {
         void onSubmit(View v, T input);
     }
@@ -184,8 +200,16 @@ public class Util {
     @BindingAdapter("app:imagePath")
     public static void loadImage(ImageView view, String imagePath) {
         if (imagePath != null  && !imagePath.isEmpty()) {
-            String absolutePath = new File(imagePath).getAbsolutePath();
-            Picasso.with(view.getContext()).load(new File(absolutePath)).error(R.drawable.no_pic).into(view);
+            Picasso.with(view.getContext())
+                    .load(new File(imagePath))
+                    .resize(200, 200)
+                    .centerCrop()
+                    .error(R.drawable.ic_add_a_photo_black_24dp)
+                    .into(view);
+        } else {
+            Picasso.with(view.getContext())
+                    .load(R.drawable.ic_add_a_photo_black_24dp)
+                    .into(view);
         }
     }
 
@@ -203,5 +227,54 @@ public class Util {
             intent.setType("image/*");
             activity.startActivityForResult(Intent.createChooser(intent, activity.getString(R.string.select_file)), MainActivity.SELECT_FILE);
         }
+    }
+
+    public static float dipToPixels(float dip) {
+        return getOneDipPixels() * dip;
+    }
+
+    public static float pixelToDip(float px) {
+        return getOneDipPixels() / px;
+    }
+
+    public static float getOneDipPixels(Context context) {
+        if (oneDipPixels == -1) {
+            oneDipPixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
+        }
+        return oneDipPixels;
+    }
+
+    public static float getOneDipPixels() {
+        if (oneDipPixels == -1) {
+            throw new RuntimeException(
+                    "You need to call Util.getOneDipPixels(Context context) once before calling it without the context."
+            );
+        } else {
+            return oneDipPixels;
+        }
+    }
+
+    public static int[] resize(int[] size, int[] max) {
+        int newX;
+        int newY;
+
+        int oldX = size[0];
+        int oldY = size[1];
+
+        int maxX = max[0];
+        int maxY = max[1];
+        if (oldX < oldY) {
+            newX = maxX;
+            newY = oldY * (oldX / newX);
+        } else {
+            newY = maxY;
+            newX = oldX * (oldY / newY);
+        }
+
+        return new int[] {newX, newY};
+    }
+
+    public static boolean randomBoolean() {
+        return randomGenerator.nextBoolean();
     }
 }

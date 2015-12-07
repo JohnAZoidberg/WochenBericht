@@ -55,7 +55,7 @@ public class SlideOut extends TextView {
                 setTranslationY(translationY);
             }
         }
-        System.out.println(visible + ", " + animate + ", " + force);
+        System.out.println("SlideOut: " + visible + ", " + animate + ", " + force);
     }
 
     private int getMarginBottom() {

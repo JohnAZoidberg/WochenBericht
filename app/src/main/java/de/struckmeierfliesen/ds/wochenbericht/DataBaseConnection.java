@@ -212,7 +212,6 @@ public class DataBaseConnection {
                 work
         );
         entry.id = id;
-        if (picturePath == null) Log.d("database-error-mee", "whaaaat");
         entry.setPicturePath(picturePath);
         return entry;
     }
@@ -335,5 +334,11 @@ public class DataBaseConnection {
         ContentValues values = new ContentValues();
         values.put(COLUMN_PICTURE_PATH, pictureFile);
         return database.update(TABLE_ENTRIES, values, COLUMN_ID + " = " + entryId, null);
+    }
+
+    public void deletePictureFromEntry(int entryId) {
+        ContentValues values = new ContentValues();
+        values.putNull(COLUMN_PICTURE_PATH);
+        database.update(TABLE_ENTRIES, values, COLUMN_ID + " = " + entryId, null);
     }
 }
