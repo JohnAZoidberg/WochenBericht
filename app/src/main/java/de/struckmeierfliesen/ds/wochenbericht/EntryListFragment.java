@@ -116,4 +116,8 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
     public Date getDate() {
         return date;
     }
+
+    public int getItemCount() {
+        return entryListAdapter.getItemCount();
+    }
 }

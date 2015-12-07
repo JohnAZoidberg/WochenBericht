@@ -472,7 +472,11 @@ public class MainActivity extends AppCompatActivity {
         dbConn.open();
         if(entry != null) {
             entry.id = dbConn.saveEntry(entry);
-            getCurrentFragment().addEntry(entry, 0);
+            EntryListFragment currentFragment = getCurrentFragment();
+            if (currentFragment.getItemCount() > 5) {
+                de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.more_than_five));
+            }
+            currentFragment.addEntry(entry, 0);
         }
         dbConn.close();
     }

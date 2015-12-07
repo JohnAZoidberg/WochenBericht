@@ -51,4 +51,5 @@
     <string name="take_photo">Bild aufnehmen</string>
     <string name="choose_from_library">Von Galerie auswählen</string>
     <string name="add_photo">Photo hinzufügen!</string>
+    <string name="more_than_five">Mehr als 5 Einträge pro Tag können nicht gedruckt werden.</string>
 </resources>
