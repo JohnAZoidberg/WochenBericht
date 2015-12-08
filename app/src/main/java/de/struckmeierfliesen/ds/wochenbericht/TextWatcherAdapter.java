@@ -8,9 +8,7 @@ import android.widget.EditText;
 public class TextWatcherAdapter implements TextWatcher {
 
     public interface TextWatcherListener {
-
         void onTextChanged(EditText view, String text);
-
     }
 
     private final EditText view;

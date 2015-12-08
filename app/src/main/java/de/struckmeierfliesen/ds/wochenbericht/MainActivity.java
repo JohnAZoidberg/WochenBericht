@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         ActionBar supportActionBar = getSupportActionBar();
         if(supportActionBar != null) supportActionBar.setDisplayShowTitleEnabled(false);
+
         changeDateButton = (TextView) findViewById(R.id.changeDate);
         setDate(date);
         changeDateButton.setOnClickListener(new View.OnClickListener() {
@@ -297,6 +298,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_generate:
                 createReport();
+            case R.id.action_clients:
+                startActivity(new Intent(this, ClientActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
