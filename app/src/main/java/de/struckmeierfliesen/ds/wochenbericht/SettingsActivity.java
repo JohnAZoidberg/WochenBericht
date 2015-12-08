@@ -106,7 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
         importButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(getApplicationContext(),
+                de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(SettingsActivity.this,
                         getString(R.string.really_import), getString(R.string.import_explanation), new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -128,26 +128,11 @@ public class SettingsActivity extends AppCompatActivity {
         dropDbButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DataBaseConnection.dropDatabase(SettingsActivity.this);
-            }
-        });
-
-        // TODO to be deleted in future versions
-        Button updateButton = (Button) findViewById(R.id.updateButton);
-        updateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(SettingsActivity.this, "Datenbank wirklich updaten?",
-                        "Du darfst die Datenbank nur einmal updaten und das auch nur," +
-                                "wenn nach dem App Update deine Zeiten" +
-                                "der Dauer für die Einträge nicht mehr stimmen!",
-                        new View.OnClickListener() {
+                de.struckmeierfliesen.ds.wochenbericht.Dialog.askForConfirmation(SettingsActivity.this,
+                        R.string.really_delete, R.string.delete_everything, new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                dbConn.open();
-                                dbConn.upgradeDurations();
-                                dbConn.close();
-                                de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(getApplicationContext(), "Update durchgeführt!");
+                                DataBaseConnection.dropDatabase(SettingsActivity.this);
                             }
                         });
             }
