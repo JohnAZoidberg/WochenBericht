@@ -155,13 +155,23 @@ public class DataBaseConnection {
             e.printStackTrace();
         }
     }
-
     private List<Entry> getEntries(@Nullable Date date) {
+        return getEntries(date, null);
+    }
+
+    private List<Entry> getEntries(@Nullable Date date, @Nullable String client) {
         List<Entry> entries = new ArrayList<>();
 
-        long startTime = Util.getStartOfDay(date).getTime() / 1000;
-        long endTime = Util.getEndOfDay(date).getTime() / 1000;
-        String where = COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
+        String where = "";
+        if (date != null) {
+            long startTime = Util.getStartOfDay(date).getTime() / 1000;
+            long endTime = Util.getEndOfDay(date).getTime() / 1000;
+            where += COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
+        }
+        if (client != null) {
+            if (!where.equals("")) where += " AND ";
+            where += COLUMN_CLIENT + " = '" + client + "'";
+        }
         Cursor cursor = database.query(TABLE_ENTRIES, allEntriesColumns, where, null, null, null, null);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -259,7 +269,11 @@ public class DataBaseConnection {
     }
 
     public List<Entry> getEntriesWithInstaller(@Nullable Date date) {
-        return idToInstaller(getEntries(date));
+        return idToInstaller(getEntries(date, null));
+    }
+
+    public List<Entry> getEntriesWithInstaller(@Nullable Date date, @Nullable String client) {
+        return idToInstaller(getEntries(date, client));
     }
 
     public void editEntry(Entry entry) {
@@ -321,7 +335,7 @@ public class DataBaseConnection {
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
-            clients.add(client.trim());
+            clients.add(client);//.trim());
             cursor.moveToNext();
         }
         cursor.close();
@@ -340,5 +354,9 @@ public class DataBaseConnection {
         ContentValues values = new ContentValues();
         values.putNull(COLUMN_PICTURE_PATH);
         database.update(TABLE_ENTRIES, values, COLUMN_ID + " = " + entryId, null);
+    }
+
+    public List<Entry> getEntriesForClient(String client) {
+        return getEntriesWithInstaller(null, client);
     }
 }

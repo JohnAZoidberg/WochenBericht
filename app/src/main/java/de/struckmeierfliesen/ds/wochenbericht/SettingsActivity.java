@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TimePicker;
@@ -67,7 +66,7 @@ public class SettingsActivity extends AppCompatActivity {
         editName.setOnFocusChangeListener(onFocusChangeListener);
 
         // set up reminder stuff
-        setTimeButton = (Button) findViewById(R.id.setTimeButton);
+        /*setTimeButton = (Button) findViewById(R.id.setTimeButton);
         setTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
                 switchAlarmOnOff(isChecked);
             }
         });
-        loadNotifSettings();
+        loadNotifSettings();*/
 
         final DataBaseConnection dbConn = new DataBaseConnection(this);
         // set up Database controls

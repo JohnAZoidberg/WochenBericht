@@ -60,18 +60,20 @@
             android:layout_height="wrap_content"
             android:text="@{entry.installer}"
             android:id="@+id/installerView"
-            android:layout_alignTop="@+id/clientView"
+            android:layout_alignTop="@+id/dateView"
             android:layout_toLeftOf="@id/entryImageView"
             android:layout_toStartOf="@id/entryImageView" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{entry.client}"
-            android:id="@+id/clientView"
+            android:text="@{entry.date}"
+            android:id="@+id/dateView"
             android:layout_below="@+id/workView"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:layout_alignRight="@+id/workView"
+            android:layout_alignEnd="@+id/workView" />
 
     </RelativeLayout>
 </layout>

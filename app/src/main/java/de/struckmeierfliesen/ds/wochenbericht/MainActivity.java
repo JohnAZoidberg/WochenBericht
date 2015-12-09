@@ -5,14 +5,9 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
@@ -41,11 +36,7 @@ import com.google.common.collect.HashBiMap;
 
 import org.apache.pdfbox.exceptions.COSVisitorException;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,11 +44,6 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int SELECT_FILE = 0;
-    public static final int REQUEST_CAMERA = 1;
-
-    private static final int SET_ENTRY_DATE = 0;
-    private static final int SET_SHOWN_DATE = 1;
     private static final int NOT_EDITING = -1;
     private AutoCompleteTextView clientEdit;
     private EditText workEdit;
@@ -266,9 +252,7 @@ public class MainActivity extends AppCompatActivity {
                 //Util.alert(MainActivity.this, "Alarm cancelled!");
 
 
-                Intent showPicIntent = new Intent(MainActivity.this, PictureViewerActivity.class);
-                showPicIntent.putExtra("fileName", Util.newPictureFile("statistics.png").getAbsolutePath());
-                showPicIntent.putExtra("title", "My Statistics");
+                Intent showPicIntent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(showPicIntent);
             }
         });
@@ -308,48 +292,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && Util.lastEntryPictureClicked != -1) {
-            if (requestCode == REQUEST_CAMERA) {
-                String picturePath = null;
-
-                File f = new File(Environment.getExternalStorageDirectory().toString());
-                for (File temp : f.listFiles()) {
-                    if (temp.getName().equals(Util.TEMP_IMAGE)) {
-                        f = temp;
-                        break;
-                    }
-                }
-                try {
-                    BitmapFactory.Options btmapOptions = new BitmapFactory.Options();
-                    Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath(), btmapOptions);
-                    f.delete();
-
-                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                    String fileName = "AzubiLog_" + Util.lastEntryPictureClicked + "_" + timeStamp + ".png";
-                    File file = Util.newPictureFile(fileName);
-
-                    OutputStream fOut = null;
-                    try {
-                        fOut = new FileOutputStream(file);
-                        bm.compress(Bitmap.CompressFormat.JPEG, 85, fOut);
-                        fOut.flush();
-                        fOut.close();
-                        picturePath = file.getAbsolutePath();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Util.addPictureToEntry(dbConn, Util.lastEntryPictureClicked, picturePath);
-            } else if (requestCode == SELECT_FILE) {
-                Uri selectedImageUri = data.getData();
-                String picturePath = getPath(selectedImageUri);
-                Util.addPictureToEntry(dbConn, Util.lastEntryPictureClicked, picturePath);
-            }
+        if (Util.handlePictureResult(requestCode, resultCode, data, this))
             reloadDayFragments();
-        }
-        Util.lastEntryPictureClicked = -1;
     }
 
     // own methods
@@ -360,18 +304,6 @@ public class MainActivity extends AppCompatActivity {
         dayViewPager.addOnPageChangeListener(null);
         showDate(date);
         dayViewPager.addOnPageChangeListener(onPageChangeListener);
-    }
-
-    public String getPath(Uri uri) {
-        String res = null;
-        String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = getContentResolver().query(uri, proj, null, null, null);
-        if (cursor.moveToFirst()) {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-        cursor.close();
-        return res;
     }
 
     private List<String> getClients() {

@@ -3,7 +3,10 @@ package de.struckmeierfliesen.ds.wochenbericht;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.databinding.BindingAdapter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -15,6 +18,10 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -22,8 +29,11 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
-    public static int lastEntryPictureClicked = -1;
     public static final String TEMP_IMAGE = "azubiLogTemp.jpg";
+    public static final int SELECT_FILE = 0;
+    public static final int REQUEST_CAMERA = 1;
+
+    public static int lastEntryPictureClicked = -1;
     private static float oneDipPixels = -1;
     private static Random randomGenerator = new Random();
 
@@ -69,9 +79,10 @@ public class Util {
         // TODO has not been tested
     }
 
+    // returns true if either date is null
     public static boolean isSameDay(Date date1, Date date2) {
-        return (date1 != null || date2 != null)
-                && DateFormat.format("dd.MM.yy", date1).equals(DateFormat.format("dd.MM.yy", date2));
+        return date1 == null || date2 == null
+                || DateFormat.format("dd.MM.yy", date1).equals(DateFormat.format("dd.MM.yy", date2));
     }
 
     public static int[] extractIntFromDate(Date date) {
@@ -111,6 +122,7 @@ public class Util {
     }
 
     public static String formatDate(Date date) {
+        if (date == null) return "null";
         return DateFormat.format("dd.MM.yy", date).toString();
     }
 
@@ -193,6 +205,65 @@ public class Util {
         deletePictureFromEntry(dbConn, entryId);
     }
 
+    // returns success
+    public static boolean handlePictureResult(int requestCode, int resultCode, Intent data, Activity activity) {
+        boolean success = false;
+        if (resultCode == Activity.RESULT_OK && Util.lastEntryPictureClicked != -1) {
+            if (requestCode == REQUEST_CAMERA) {
+                File f = new File(Environment.getExternalStorageDirectory().toString());
+                for (File temp : f.listFiles()) {
+                    if (temp.getName().equals(Util.TEMP_IMAGE)) {
+                        f = temp;
+                        break;
+                    }
+                }
+                try {
+                    BitmapFactory.Options btmapOptions = new BitmapFactory.Options();
+                    Bitmap bm = BitmapFactory.decodeFile(f.getAbsolutePath(), btmapOptions);
+                    f.delete();
+
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String fileName = "AzubiLog_" + Util.lastEntryPictureClicked + "_" + timeStamp + ".png";
+                    File file = Util.newPictureFile(fileName);
+
+                    OutputStream fOut = null;
+                    try {
+                        fOut = new FileOutputStream(file);
+                        bm.compress(Bitmap.CompressFormat.JPEG, 85, fOut);
+                        fOut.flush();
+                        fOut.close();
+                        String picturePath = file.getAbsolutePath();
+                        Util.addPictureToEntry(activity, Util.lastEntryPictureClicked, picturePath);
+                        success = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (requestCode == SELECT_FILE) {
+                Uri selectedImageUri = data.getData();
+                String picturePath = getPath(selectedImageUri, activity);
+                Util.addPictureToEntry(activity, Util.lastEntryPictureClicked, picturePath);
+                success = true;
+            }
+        }
+        Util.lastEntryPictureClicked = -1;
+        return success;
+    }
+
+    public static String getPath(Uri uri, Context context) {
+        String res = null;
+        String[] proj = { MediaStore.Images.Media.DATA };
+        Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
+    }
+
     interface OnInputSubmitListener<T> {
         void onSubmit(View v, T input);
     }
@@ -221,11 +292,11 @@ public class Util {
 
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
-            activity.startActivityForResult(intent, MainActivity.REQUEST_CAMERA);
+            activity.startActivityForResult(intent, REQUEST_CAMERA);
         }else {
             Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             intent.setType("image/*");
-            activity.startActivityForResult(Intent.createChooser(intent, activity.getString(R.string.select_file)), MainActivity.SELECT_FILE);
+            activity.startActivityForResult(Intent.createChooser(intent, activity.getString(R.string.select_file)), SELECT_FILE);
         }
     }
 

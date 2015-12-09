@@ -54,4 +54,5 @@
     <string name="more_than_five">Mehr als 5 Einträge pro Tag können nicht gedruckt werden.</string>
     <string name="delete_everything">Hiermit werden alle Einträge, Kunden und Gesellen gelöscht!</string>
     <string name="clients">Kunden</string>
+    <string name="no_clients">Keine Kunden eingetragen.</string>
 </resources>
