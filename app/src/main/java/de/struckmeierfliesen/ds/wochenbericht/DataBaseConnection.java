@@ -154,10 +154,10 @@ public class DataBaseConnection {
         }
     }
     private List<Entry> getEntries(@Nullable Date date) {
-        return getEntries(date, null);
+        return getEntries(date, -1);
     }
 
-    private List<Entry> getNewEntries(@Nullable Date date, @Nullable String client) {
+    private List<Entry> getNewEntries(@Nullable Date date, int clientId) {
         List<Entry> entries = new ArrayList<>();
         String sql = "SELECT " + absoluteAllEntriesColumns + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
                 " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
@@ -167,8 +167,8 @@ public class DataBaseConnection {
             long endTime = Util.getEndOfDay(date).getTime() / 1000;
             sql += " AND " + COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
         }
-        if (client != null) {
-            sql += " AND " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME + " = '" + client + "'";
+        if (clientId != -1) {
+            sql += " AND " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID + " = " + clientId + "";
         }
         Cursor cursor = database.rawQuery(sql, null);
         MySQLiteHelper.displayCursor(cursor, false);
@@ -191,9 +191,9 @@ public class DataBaseConnection {
         return entries;
     }
 
-    private List<Entry> getEntries(@Nullable Date date, @Nullable String client) {
+    private List<Entry> getEntries(@Nullable Date date, int clientId) {
         if (DATABASE_VERSION == THIRD_VERSION) {
-            return getNewEntries(date, client);
+            return getNewEntries(date, clientId);
         } else {
             List<Entry> entries = new ArrayList<>();
             String where = "";
@@ -201,10 +201,6 @@ public class DataBaseConnection {
                 long startTime = Util.getStartOfDay(date).getTime() / 1000;
                 long endTime = Util.getEndOfDay(date).getTime() / 1000;
                 where += COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
-            }
-            if (client != null) {
-                if (!where.equals("")) where += " AND ";
-                where += COLUMN_CLIENT + " = '" + client + "'";
             }
             Cursor cursor = database.query(TABLE_ENTRIES, allEntriesColumns, where, null, null, null, null);
             cursor.moveToFirst();
@@ -361,11 +357,11 @@ public class DataBaseConnection {
     }
 
     public List<Entry> getEntriesWithInstaller(@Nullable Date date) {
-        return idToInstaller(getEntries(date, null));
+        return idToInstaller(getEntries(date, -1));
     }
 
-    public List<Entry> getEntriesWithInstaller(@Nullable Date date, @Nullable String client) {
-        return idToInstaller(getEntries(date, client));
+    public List<Entry> getEntriesWithInstaller(@Nullable Date date, int clientId) {
+        return idToInstaller(getEntries(date, clientId));
     }
 
     public void editEntry(Entry entry) {
@@ -454,11 +450,31 @@ public class DataBaseConnection {
 
     public List<String> getNewAllClients(boolean trim) {
         List<String> clients = new ArrayList<>();
-        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS + " ORDER BY " + CLIENTS_COLUMN_NAME + " ASC", null);
+        Cursor cursor = database.rawQuery("SELECT " + CLIENTS_COLUMN_NAME + " FROM " + TABLE_CLIENTS + " ORDER BY " + CLIENTS_COLUMN_NAME + " ASC", null);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             String client = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
             if (trim) client = client.trim();
+            clients.add(client);
+            cursor.moveToNext();
+        }
+        cursor.close();
+        // remove duplicates
+        clients = new ArrayList<>(new LinkedHashSet<>(clients));
+        return clients;
+    }
+
+    public List<Client> getAllClientObjects(boolean trim) {
+        List<Client> clients = new ArrayList<>();
+        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS + " ORDER BY " + CLIENTS_COLUMN_NAME + " ASC", null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            int id = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_ID));
+            String name = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
+            if (trim) name = name.trim();
+            Client client = new Client(id, name);
+            client.tel = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
+            client.adress = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_ADRESS));
             clients.add(client);
             cursor.moveToNext();
         }
@@ -500,7 +516,30 @@ public class DataBaseConnection {
         database.update(TABLE_ENTRIES, values, COLUMN_ID + " = " + entryId, null);
     }
 
-    public List<Entry> getEntriesForClient(String client) {
-        return getEntriesWithInstaller(null, client);
+    public List<Entry> getEntriesForClient(int clientId) {
+        return getEntriesWithInstaller(null, clientId);
+    }
+
+    public void saveClientDetails(int clientId, int tel, String adress) {
+        ContentValues values = new ContentValues();
+        values.put(CLIENTS_COLUMN_TEL, tel);
+        values.put(CLIENTS_COLUMN_ADRESS, adress);
+        database.update(TABLE_CLIENTS, values, CLIENTS_COLUMN_ID + " = " + clientId, null);
+    }
+
+    public Client getClient(int clientId) {
+        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS +
+                        " WHERE " + CLIENTS_COLUMN_ID + " = " + clientId,
+                null);
+        cursor.moveToFirst();
+        String name = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
+        String adress = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_ADRESS));
+        boolean noTel = cursor.isNull(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
+        int tel = noTel ? -1 : cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
+        cursor.close();
+        Client client = new Client(clientId, name);
+        client.adress = adress;
+        client.tel = tel;
+        return client;
     }
 }

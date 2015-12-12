@@ -16,6 +16,7 @@ public class ClientListFragment extends Fragment {
 
     private TextViewAdapter clientAdapter;
     private ClientLoaderActivity activity;
+    private List<Client> clients;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -25,11 +26,13 @@ public class ClientListFragment extends Fragment {
         EmptyRecyclerView recyclerView = (EmptyRecyclerView) rootView.findViewById(R.id.clientList);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false));
-        clientAdapter = new TextViewAdapter(activity.loadClients());
+
+        clients = activity.loadClientObjects();
+        clientAdapter = new TextViewAdapter(clients);
         clientAdapter.setOnItemClickListener(new TextViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(TextView view, String text, int item) {
-                startDetailsFragment(text);
+                startDetailsFragment(clients.get(item));
             }
         });
         recyclerView.setAdapter(clientAdapter);
@@ -37,11 +40,14 @@ public class ClientListFragment extends Fragment {
         return rootView;
     }
 
-    private void startDetailsFragment(String client) {
+    private void startDetailsFragment(Client client) {
         // Create fragment and give it an argument specifying the article it should show
         ClientDetailsFragment newFragment = new ClientDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ClientDetailsFragment.ARG_CLIENT, client);
+        args.putString(ClientDetailsFragment.ARG_CLIENT_NAME, client.name);
+        args.putString(ClientDetailsFragment.ARG_CLIENT_ADRESS, client.adress);
+        args.putInt(ClientDetailsFragment.ARG_CLIENT_ID, client.id);
+        args.putInt(ClientDetailsFragment.ARG_CLIENT_TEL, client.tel);
         newFragment.setArguments(args);
 
         FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
@@ -56,7 +62,10 @@ public class ClientListFragment extends Fragment {
     }
 
     abstract public static class ClientLoaderActivity extends AppCompatActivity {
-        abstract String[] loadClients();
-        abstract List<Entry> loadEntries(String client);
+        public abstract Client loadClient(int clientId);
+        public abstract List<Client> loadClientObjects();
+        //public abstract List<Entry> loadEntries(String client);
+        public abstract List<Entry> loadEntries(int clientId);
+        public abstract void saveDetails(int clientId, int tel, String adress);
     }
 }

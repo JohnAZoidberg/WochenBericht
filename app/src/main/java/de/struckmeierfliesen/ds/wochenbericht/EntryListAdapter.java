@@ -109,7 +109,7 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
                 public void onClick(View v) {
                     Context context = v.getContext();
                     Intent intent = new Intent(context, ClientActivity.class);
-                    intent.putExtra(ClientDetailsFragment.ARG_CLIENT, ((TextView) v).getText().toString());
+                    intent.putExtra(ClientDetailsFragment.ARG_CLIENT_NAME, ((TextView) v).getText().toString());
                     context.startActivity(intent);
                 }
             });

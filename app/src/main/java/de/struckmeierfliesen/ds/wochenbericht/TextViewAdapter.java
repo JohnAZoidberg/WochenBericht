@@ -6,12 +6,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class TextViewAdapter extends RecyclerView.Adapter<TextViewAdapter.StringHolder> {
     private String[] items;
     private OnItemClickListener listener;
 
     public TextViewAdapter(String... items) {
         this.items = items;
+    }
+
+    public TextViewAdapter(List<Client> items) {
+        this.items = new String[items.size()];
+        for (int i = 0; i < items.size(); i++) {
+            this.items[i] = items.get(i).toString();
+        }
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {

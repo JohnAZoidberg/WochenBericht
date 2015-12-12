@@ -36,7 +36,7 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
         }
 
         Intent intent = getIntent();
-        if (intent.hasExtra(ClientDetailsFragment.ARG_CLIENT)) {
+        if (intent.hasExtra(ClientDetailsFragment.ARG_CLIENT_NAME)) {
             fragment = new ClientDetailsFragment();
             fragment.setArguments(getIntent().getExtras());
         } else {
@@ -45,19 +45,43 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
         getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, fragment, FRAGMENT_TAG).commit();
     }
 
+    @Override
+    public Client loadClient(int clientId) {
+        dbConn.open();
+        Client client = dbConn.getClient(clientId);
+        dbConn.close();
+        return client;
+    }
+
+/*@Override
     public String[] loadClients() {
         dbConn.open();
         List<String> allClients = dbConn.getAllClients(false);
         dbConn.close();
         return allClients.toArray(new String[allClients.size()]);
+    }*/
+
+    @Override
+    public List<Client> loadClientObjects() {
+        dbConn.open();
+        List<Client> allClientObjects = dbConn.getAllClientObjects(false);
+        dbConn.close();
+        return allClientObjects;
     }
 
     @Override
-    List<Entry> loadEntries(String client) {
+    public List<Entry> loadEntries(int clientId) {
         dbConn.open();
-        List<Entry> entries = dbConn.getEntriesForClient(client);
+        List<Entry> entries = dbConn.getEntriesForClient(clientId);
         dbConn.close();
         return entries;
+    }
+
+    @Override
+    public void saveDetails(int clientId, int tel, String adress) {
+        dbConn.open();
+        dbConn.saveClientDetails(clientId, tel, adress);
+        dbConn.close();
     }
 
     @Override
