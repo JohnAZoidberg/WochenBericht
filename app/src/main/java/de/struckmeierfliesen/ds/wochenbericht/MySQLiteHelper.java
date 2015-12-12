@@ -34,7 +34,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String CLIENTS_COLUMN_ADRESS = "adress";
 
     public static final String DATABASE_NAME = "shortcuts.db";
-    public static final int DATABASE_VERSION = 4;
+    public static final int FIRST_VERSION = 1;
+    public static final int SECOND_VERSION = 2;
+    public static final int THIRD_VERSION = 3;
+    public static final int DATABASE_VERSION = THIRD_VERSION;
 
     // Database creation sql statement
     private static final String CREATE_TABLE_ENTRIES = "CREATE TABLE IF NOT EXISTS "
@@ -87,10 +90,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.d("onUpgrade", "OldVersion: " + oldVersion + " - newVersion: " + newVersion);
-        if (oldVersion == 1 && newVersion == 2) {
+        if (oldVersion == FIRST_VERSION && newVersion == SECOND_VERSION) {
             String upgradeQuery = "ALTER TABLE " + TABLE_ENTRIES + " ADD COLUMN " + COLUMN_PICTURE_PATH + " TEXT";
             db.execSQL(upgradeQuery);
-        } else if (newVersion == 4) {
+        } else if (newVersion == THIRD_VERSION) {
             // Create new table
             db.execSQL(CREATE_TABLE_CLIENTS);
 

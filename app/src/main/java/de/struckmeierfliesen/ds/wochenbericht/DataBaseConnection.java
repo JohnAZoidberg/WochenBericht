@@ -192,7 +192,7 @@ public class DataBaseConnection {
     }
 
     private List<Entry> getEntries(@Nullable Date date, @Nullable String client) {
-        if (DATABASE_VERSION == 4) {
+        if (DATABASE_VERSION == THIRD_VERSION) {
             return getNewEntries(date, client);
         } else {
             List<Entry> entries = new ArrayList<>();
@@ -297,7 +297,7 @@ public class DataBaseConnection {
         if(entry.installerId == -1) throw new IllegalArgumentException("You cannot add an entry without an installer!");
 
         ContentValues values;
-        if (DATABASE_VERSION == 4) {
+        if (DATABASE_VERSION == THIRD_VERSION) {
             int clientId = updateOrInsertClient(entry.client);
             values = entryToValues(entry, clientId);
         } else {
@@ -371,7 +371,7 @@ public class DataBaseConnection {
     public void editEntry(Entry entry) {
         if(entry.id != -1) {
             ContentValues values;
-            if (DATABASE_VERSION == 4) {
+            if (DATABASE_VERSION == THIRD_VERSION) {
                 int clientId = updateOrInsertClient(entry.client);
                 values = entryToValues(entry, clientId);
             } else {
@@ -410,7 +410,7 @@ public class DataBaseConnection {
     }
 
     public Entry loadAverageEntry() {
-        if (DATABASE_VERSION == 4) {
+        if (DATABASE_VERSION == THIRD_VERSION) {
             String sql = "SELECT " + absoluteAllEntriesColumns + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
                     " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
                     " WHERE " + TABLE_ENTRIES + "." + COLUMN_CLIENT_ID + " = " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID;
@@ -469,7 +469,7 @@ public class DataBaseConnection {
     }
 
     public List<String> getAllClients(boolean trim) {
-        if (DATABASE_VERSION == 4) {
+        if (DATABASE_VERSION == THIRD_VERSION) {
             return getNewAllClients(trim);
         } else {
             List<String> clients = new ArrayList<>();
