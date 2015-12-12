@@ -47,7 +47,7 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
 
     public String[] loadClients() {
         dbConn.open();
-        List<String> allClients = dbConn.getAllClients();
+        List<String> allClients = dbConn.getAllClients(false);
         dbConn.close();
         return allClients.toArray(new String[allClients.size()]);
     }

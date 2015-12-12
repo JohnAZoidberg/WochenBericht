@@ -22,23 +22,21 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_CLIENT;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DATE;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DURATION;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_ID;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_INSTALLER_ID;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_PICTURE_PATH;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_WORK;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.DATABASE_NAME;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.INSTALLERS_COLUMN_ID;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.INSTALLERS_COLUMN_NAME;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.TABLE_ENTRIES;
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.TABLE_INSTALLERS;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.*;
 
 public class DataBaseConnection {
     // Database fields
     private SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
+
+    private final String absoluteAllEntriesColumns =
+            TABLE_ENTRIES + "." + COLUMN_ID + ", " +
+            TABLE_ENTRIES + "." + COLUMN_DATE + ", " +
+            TABLE_ENTRIES + "." + COLUMN_DURATION + ", " +
+            TABLE_ENTRIES + "." + COLUMN_INSTALLER_ID + ", " +
+            TABLE_ENTRIES + "." + COLUMN_WORK + ", " +
+            TABLE_ENTRIES + "." + COLUMN_PICTURE_PATH;
+
     private final String[] allEntriesColumns = {
             COLUMN_ID,
             COLUMN_CLIENT,
@@ -159,24 +157,25 @@ public class DataBaseConnection {
         return getEntries(date, null);
     }
 
-    private List<Entry> getEntries(@Nullable Date date, @Nullable String client) {
+    private List<Entry> getNewEntries(@Nullable Date date, @Nullable String client) {
         List<Entry> entries = new ArrayList<>();
-
-        String where = "";
+        String sql = "SELECT " + absoluteAllEntriesColumns + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
+                " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
+                " WHERE " + TABLE_ENTRIES + "." + COLUMN_CLIENT_ID + " = " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID;
         if (date != null) {
             long startTime = Util.getStartOfDay(date).getTime() / 1000;
             long endTime = Util.getEndOfDay(date).getTime() / 1000;
-            where += COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
+            sql += " AND " + COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
         }
         if (client != null) {
-            if (!where.equals("")) where += " AND ";
-            where += COLUMN_CLIENT + " = '" + client + "'";
+            sql += " AND " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME + " = '" + client + "'";
         }
-        Cursor cursor = database.query(TABLE_ENTRIES, allEntriesColumns, where, null, null, null, null);
+        Cursor cursor = database.rawQuery(sql, null);
+        MySQLiteHelper.displayCursor(cursor, false);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
-            Entry entry = cursorToEntry(cursor, null);
-            if(entry != null) {
+            Entry entry = newCursorToEntry(cursor, null);
+            if (entry != null) {
                 // check if the WHERE query works and if not it is to be replaced
                 if (!Util.isSameDay(entry.date, date)) {
                     Log.e("Error Log by Dev :)", "Not same day!");
@@ -192,6 +191,42 @@ public class DataBaseConnection {
         return entries;
     }
 
+    private List<Entry> getEntries(@Nullable Date date, @Nullable String client) {
+        if (DATABASE_VERSION == 4) {
+            return getNewEntries(date, client);
+        } else {
+            List<Entry> entries = new ArrayList<>();
+            String where = "";
+            if (date != null) {
+                long startTime = Util.getStartOfDay(date).getTime() / 1000;
+                long endTime = Util.getEndOfDay(date).getTime() / 1000;
+                where += COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
+            }
+            if (client != null) {
+                if (!where.equals("")) where += " AND ";
+                where += COLUMN_CLIENT + " = '" + client + "'";
+            }
+            Cursor cursor = database.query(TABLE_ENTRIES, allEntriesColumns, where, null, null, null, null);
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                Entry entry = cursorToEntry(cursor, null);
+                if (entry != null) {
+                    // check if the WHERE query works and if not it is to be replaced
+                    if (!Util.isSameDay(entry.date, date)) {
+                        Log.e("Error Log by Dev :)", "Not same day!");
+                        entry.work += " Wrong date! Supposed to be on " + Util.formatDate(date) + ", " +
+                                "please inform developer!";
+                    }
+                    entries.add(entry);
+                }
+                cursor.moveToNext();
+            }
+            cursor.close();
+            Collections.reverse(entries);
+            return entries;
+        }
+    }
+
     public List<List<Entry>> getLastWeekEntries(Date date) {
         Date[] lastWeek = Util.getDatesOfLastWeek(date);
         List<List<Entry>> weekEntries = new ArrayList<>(4);
@@ -202,7 +237,33 @@ public class DataBaseConnection {
         return weekEntries;
     }
 
-    private Entry cursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
+    public static Entry newCursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
+        Entry entry = null;
+        if(cursor.getCount() > 0) {
+            int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+            String client = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
+            long time = (long) cursor.getInt(cursor.getColumnIndex(COLUMN_DATE)) * 1000;
+            Date date = new Date(time);
+            if (onlyDate != null && !Util.isSameDay(date, onlyDate)) return null;
+            int duration = cursor.getInt(cursor.getColumnIndex(COLUMN_DURATION));
+            int installerId = cursor.getInt(cursor.getColumnIndex(COLUMN_INSTALLER_ID));
+            String work = cursor.getString(cursor.getColumnIndex(COLUMN_WORK));
+            String picturePath = cursor.getString(cursor.getColumnIndex(COLUMN_PICTURE_PATH));
+
+            entry = new Entry(
+                    client,
+                    date,
+                    duration,
+                    installerId,
+                    work
+            );
+            entry.id = id;
+            entry.setPicturePath(picturePath);
+        }
+        return entry;
+    }
+
+    public static Entry cursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
         if(cursor.getCount() == 0) return null;
         int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
         String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
@@ -226,10 +287,41 @@ public class DataBaseConnection {
         return entry;
     }
 
+    private int addClient(String client) {
+        ContentValues values = new ContentValues();
+        values.put(CLIENTS_COLUMN_NAME, client);
+        return (int) database.insertWithOnConflict(TABLE_CLIENTS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+    }
+
     public int saveEntry(Entry entry) {
         if(entry.installerId == -1) throw new IllegalArgumentException("You cannot add an entry without an installer!");
-        ContentValues values = entryToValues(entry);
+
+        ContentValues values;
+        if (DATABASE_VERSION == 4) {
+            int clientId = updateOrInsertClient(entry.client);
+            values = entryToValues(entry, clientId);
+        } else {
+            values = entryToValues(entry);
+        }
+
+        // insert entry
         return (int) database.insert(TABLE_ENTRIES, null, values);
+    }
+
+    private int updateOrInsertClient(String client) {
+        int clientId = -1;
+        // check if client exists
+        Cursor cursor = database.query(TABLE_CLIENTS, new String[]{CLIENTS_COLUMN_ID},
+                CLIENTS_COLUMN_NAME + " = '" + client + "'",
+                null, null, null, null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            clientId = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_ID));
+            cursor.moveToNext();
+        }
+        cursor.close();
+        if (clientId == -1) clientId = addClient(client);
+        return clientId;
     }
 
     public int addInstaller(String installer) {
@@ -277,20 +369,39 @@ public class DataBaseConnection {
     }
 
     public void editEntry(Entry entry) {
-        ContentValues values = entryToValues(entry);
-        if(entry.id != -1)
+        if(entry.id != -1) {
+            ContentValues values;
+            if (DATABASE_VERSION == 4) {
+                int clientId = updateOrInsertClient(entry.client);
+                values = entryToValues(entry, clientId);
+            } else {
+                values = entryToValues(entry);
+            }
             database.update(TABLE_ENTRIES, values, COLUMN_ID + "=" + entry.id, null);
+        }
+    }
+
+    private ContentValues entryToValues(Entry entry, int clientId) {
+        ContentValues entryValues = new ContentValues();
+        long time = entry.date.getTime() / 1000;
+        entryValues.put(COLUMN_DATE, time);
+        entryValues.put(COLUMN_CLIENT_ID, clientId);
+        entryValues.put(COLUMN_DURATION, entry.duration);
+        entryValues.put(COLUMN_INSTALLER_ID, entry.installerId);
+        entryValues.put(COLUMN_WORK, entry.work);
+
+        return entryValues;
     }
 
     private ContentValues entryToValues(Entry entry) {
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_CLIENT, entry.client);
+        ContentValues entryValues = new ContentValues();
         long time = entry.date.getTime() / 1000;
-        values.put(COLUMN_DATE, time);
-        values.put(COLUMN_DURATION, entry.duration);
-        values.put(COLUMN_INSTALLER_ID, entry.installerId);
-        values.put(COLUMN_WORK, entry.work);
-        return values;
+        entryValues.put(COLUMN_DATE, time);
+        entryValues.put(COLUMN_DURATION, entry.duration);
+        entryValues.put(COLUMN_INSTALLER_ID, entry.installerId);
+        entryValues.put(COLUMN_WORK, entry.work);
+
+        return entryValues;
     }
 
     // return true if exactly one row was removed
@@ -299,11 +410,23 @@ public class DataBaseConnection {
     }
 
     public Entry loadAverageEntry() {
-        // actually i'm just going to load the last entry
-        Cursor cursor = database.query(
-                TABLE_ENTRIES, allEntriesColumns, null, null, null, null, COLUMN_DATE + " DESC", "1");
-        cursor.moveToFirst();
-        return (cursor.getCount() > 0) ? cursorToEntry(cursor, null) : null;
+        if (DATABASE_VERSION == 4) {
+            String sql = "SELECT " + absoluteAllEntriesColumns + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
+                    " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
+                    " WHERE " + TABLE_ENTRIES + "." + COLUMN_CLIENT_ID + " = " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID;
+            sql += " ORDER BY " + TABLE_ENTRIES + "." + COLUMN_DATE + " DESC LIMIT 1";
+            Cursor cursor = database.rawQuery(sql, null);
+            cursor.moveToFirst();
+            Entry entry = (cursor.getCount() > 0) ? newCursorToEntry(cursor, null) : null;
+            cursor.close();
+            return entry;
+        } else {
+            // actually i'm just going to load the last entry
+            Cursor cursor = database.query(
+                    TABLE_ENTRIES, allEntriesColumns, null, null, null, null, COLUMN_DATE + " DESC", "1");
+            cursor.moveToFirst();
+            return (cursor.getCount() > 0) ? cursorToEntry(cursor, null) : null;
+        }
     }
 
     public boolean deleteInstaller(int installerId) {
@@ -329,19 +452,40 @@ public class DataBaseConnection {
         database.execSQL("UPDATE " + TABLE_INSTALLERS + " SET " + INSTALLERS_COLUMN_NAME + " = '" + newInstaller + "' WHERE " + INSTALLERS_COLUMN_NAME + " = '" + oldInstaller + "'");
     }
 
-    public List<String> getAllClients() {
+    public List<String> getNewAllClients(boolean trim) {
         List<String> clients = new ArrayList<>();
-        Cursor cursor = database.query(true, TABLE_ENTRIES, new String[] {COLUMN_CLIENT}, null, null, null, null, null, null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS + " ORDER BY " + CLIENTS_COLUMN_NAME + " ASC", null);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
-            String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
-            clients.add(client);//.trim());
+            String client = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
+            if (trim) client = client.trim();
+            clients.add(client);
             cursor.moveToNext();
         }
         cursor.close();
         // remove duplicates
         clients = new ArrayList<>(new LinkedHashSet<>(clients));
         return clients;
+    }
+
+    public List<String> getAllClients(boolean trim) {
+        if (DATABASE_VERSION == 4) {
+            return getNewAllClients(trim);
+        } else {
+            List<String> clients = new ArrayList<>();
+            Cursor cursor = database.query(true, TABLE_ENTRIES, new String[]{COLUMN_CLIENT}, null, null, null, null, null, null);
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
+                if (trim) client = client.trim();
+                clients.add(client);
+                cursor.moveToNext();
+            }
+            cursor.close();
+            // remove duplicates
+            clients = new ArrayList<>(new LinkedHashSet<>(clients));
+            return clients;
+        }
     }
 
     public int addPictureToEntry(int entryId, String pictureFile) {

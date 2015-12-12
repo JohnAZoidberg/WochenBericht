@@ -260,8 +260,9 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                dayViewPager.setCurrentItem(dayViewPager.getCurrentItem() + 1);
-                dayViewPager.setCurrentItem(dayViewPager.getCurrentItem());
+                de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(MainActivity.this, "Please don't do that!");
+                //dayViewPager.setCurrentItem(dayViewPager.getCurrentItem() + 1);
+                //dayViewPager.setCurrentItem(dayViewPager.getCurrentItem());
                 return true;
             }
         });
@@ -308,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<String> getClients() {
         dbConn.open();
-        List<String> allClients = dbConn.getAllClients();
+        List<String> allClients = dbConn.getAllClients(true);
         dbConn.close();
         return allClients;
     }
