@@ -527,11 +527,12 @@ public class DataBaseConnection {
         database.update(TABLE_CLIENTS, values, CLIENTS_COLUMN_ID + " = " + clientId, null);
     }
 
-    public Client getClient(int clientId) {
+    private Client queryClient(String where) {
         Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS +
-                        " WHERE " + CLIENTS_COLUMN_ID + " = " + clientId,
+                        " WHERE " + where,
                 null);
         cursor.moveToFirst();
+        int clientId = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_ID));
         String name = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
         String adress = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_ADRESS));
         boolean noTel = cursor.isNull(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
@@ -541,5 +542,14 @@ public class DataBaseConnection {
         client.adress = adress;
         client.tel = tel;
         return client;
+    }
+
+
+    public Client getClient(String client) {
+        return queryClient(CLIENTS_COLUMN_NAME + " = '" + client + "'");
+    }
+
+    public Client getClient(int clientId) {
+        return queryClient(CLIENTS_COLUMN_ID + " = " + clientId);
     }
 }

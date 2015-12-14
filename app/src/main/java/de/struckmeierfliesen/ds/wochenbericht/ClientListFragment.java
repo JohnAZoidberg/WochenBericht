@@ -44,10 +44,10 @@ public class ClientListFragment extends Fragment {
         // Create fragment and give it an argument specifying the article it should show
         ClientDetailsFragment newFragment = new ClientDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ClientDetailsFragment.ARG_CLIENT_NAME, client.name);
-        args.putString(ClientDetailsFragment.ARG_CLIENT_ADRESS, client.adress);
         args.putInt(ClientDetailsFragment.ARG_CLIENT_ID, client.id);
-        args.putInt(ClientDetailsFragment.ARG_CLIENT_TEL, client.tel);
+        /*args.putString(ClientDetailsFragment.ARG_CLIENT_NAME, client.name);
+        args.putString(ClientDetailsFragment.ARG_CLIENT_ADRESS, client.adress);
+        args.putInt(ClientDetailsFragment.ARG_CLIENT_TEL, client.tel);*/
         newFragment.setArguments(args);
 
         FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
@@ -63,6 +63,7 @@ public class ClientListFragment extends Fragment {
 
     abstract public static class ClientLoaderActivity extends AppCompatActivity {
         public abstract Client loadClient(int clientId);
+        public abstract Client loadClient(String client);
         public abstract List<Client> loadClientObjects();
         //public abstract List<Entry> loadEntries(String client);
         public abstract List<Entry> loadEntries(int clientId);

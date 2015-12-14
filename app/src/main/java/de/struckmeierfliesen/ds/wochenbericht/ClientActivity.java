@@ -53,6 +53,14 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
         return client;
     }
 
+    @Override
+    public Client loadClient(String clientName) {
+        dbConn.open();
+        Client client = dbConn.getClient(clientName);
+        dbConn.close();
+        return client;
+    }
+
 /*@Override
     public String[] loadClients() {
         dbConn.open();

@@ -37,14 +37,16 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
         activity = (ClientLoaderActivity) getActivity();
 
         Bundle args = getArguments();
-        if (args != null && args.containsKey(ARG_CLIENT_ID)) {
-            int id = args.getInt(ARG_CLIENT_ID, -1);
-            client = activity.loadClient(id);
-            /*String name = args.getString(ARG_CLIENT_NAME, null);
-            client = new Client(id, name);
-            client.tel = args.getInt(ARG_CLIENT_TEL, -1);
-            client.adress = args.getString(ARG_CLIENT_ADRESS, null);*/
-            actionbar = activity.getSupportActionBar();
+        if (args != null) {
+            if (args.containsKey(ARG_CLIENT_ID)) {
+                int id = args.getInt(ARG_CLIENT_ID, -1);
+                client = activity.loadClient(id);
+                actionbar = activity.getSupportActionBar();
+            } else if (args.containsKey(ARG_CLIENT_NAME)) {
+                String clientName = args.getString(ARG_CLIENT_NAME, null);
+                client = activity.loadClient(clientName);
+                actionbar = activity.getSupportActionBar();
+            }
         } else {
             throw new RuntimeException("No Client specified!");
         }
