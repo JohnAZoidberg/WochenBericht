@@ -37,7 +37,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final int FIRST_VERSION = 1;
     public static final int SECOND_VERSION = 2;
     public static final int THIRD_VERSION = 3;
-    public static final int DATABASE_VERSION = THIRD_VERSION;
+    public static final int FOURTH_VERSION = 4;
+    public static final int DATABASE_VERSION = FOURTH_VERSION;
 
     // Database creation sql statement
     private static final String CREATE_TABLE_ENTRIES = "CREATE TABLE IF NOT EXISTS "
@@ -73,7 +74,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             + CLIENTS_COLUMN_ID + " integer primary key, "
             + CLIENTS_COLUMN_NAME + " text non null, "
             + CLIENTS_COLUMN_ADRESS + " text, "
-            + CLIENTS_COLUMN_TEL + " integer"
+            + CLIENTS_COLUMN_TEL + " text"
             + ");";
 
     public MySQLiteHelper(Context context) {
@@ -90,10 +91,13 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.d("onUpgrade", "OldVersion: " + oldVersion + " - newVersion: " + newVersion);
-        if (oldVersion == FIRST_VERSION && newVersion == SECOND_VERSION) {
+        final String TEMP_TABLE = "temp_table";
+        switch (newVersion) {
+            case SECOND_VERSION:
             String upgradeQuery = "ALTER TABLE " + TABLE_ENTRIES + " ADD COLUMN " + COLUMN_PICTURE_PATH + " TEXT";
             db.execSQL(upgradeQuery);
-        } else if (newVersion == THIRD_VERSION) {
+
+            case THIRD_VERSION:
             // Create new table
             db.execSQL(CREATE_TABLE_CLIENTS);
 
@@ -126,8 +130,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             }
 
             // SFSDJFLKSDFJLSDFJLSKDJFKLÖSJFKLÖJSDFKLÖJSDFLÖJSDÖFKLJSDÖFKLJSDFÖLJSFLÖKD
-
-            final String TEMP_TABLE = "temp_table";
             // rename table
             db.execSQL("ALTER TABLE " + TABLE_ENTRIES + " RENAME TO " + TEMP_TABLE);
 
@@ -164,7 +166,21 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             cursor = db.rawQuery(
                     sql + " AND " + TABLE_ENTRIES + "." + COLUMN_WORK + " = 'Wartung '", null);
             displayCursor(cursor, false);
-            //throw new RuntimeException("maaan android what u doin!");
+
+            case FOURTH_VERSION:
+                // rename table
+                db.execSQL("ALTER TABLE " + TABLE_CLIENTS + " RENAME TO " + TEMP_TABLE);
+
+                // create new table
+                db.execSQL(CREATE_TABLE_CLIENTS);
+
+                // fill new table
+                db.execSQL("INSERT OR IGNORE INTO " + TABLE_CLIENTS + " SELECT * FROM " + TEMP_TABLE);
+
+                // remove old table
+                db.execSQL("DROP TABLE " + TEMP_TABLE);
+                Log.d("fasdf", "onUpgrade: jasdlkfjasklfj");
+
         }
     }
 

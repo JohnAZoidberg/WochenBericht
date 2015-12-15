@@ -69,7 +69,7 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
         telText = (EditText) rootView.findViewById(R.id.telText);
         adressText = (EditText) rootView.findViewById(R.id.adressText);
         telText.setFilters(new InputFilter[]{filter});
-        if (client.tel != -1) telText.setText(String.valueOf(client.tel));
+        if (client.tel != null) telText.setText(String.valueOf(client.tel));
         if (client.adress != null) adressText.setText(client.adress);
 
         // set up RecyclerView
@@ -155,8 +155,8 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
 
     private void saveDetails() {
         if (client.id != 1) {
-            String telString = telText.getText().toString().trim();
-            int tel = telString.isEmpty() ? -1 : Integer.parseInt(telString);
+            String tel = telText.getText().toString().trim();
+            tel = tel.isEmpty() ? null : tel;
             String adress = adressText.getText().toString().trim();
             activity.saveDetails(client.id, tel, adress);
         }

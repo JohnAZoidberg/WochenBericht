@@ -5,7 +5,7 @@ public class Client {
     public int id;
     public String name;
 
-    public int tel = -1;
+    public String tel = null;
     public String adress = null;
 
     public Client(int id, String name) {

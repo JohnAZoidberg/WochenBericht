@@ -39,7 +39,7 @@ public class DataBaseConnection {
 
     private final String[] allEntriesColumns = {
             COLUMN_ID,
-            COLUMN_CLIENT,
+            COLUMN_CLIENT_ID,
             COLUMN_DATE,
             COLUMN_DURATION,
             COLUMN_INSTALLER_ID,
@@ -111,7 +111,7 @@ public class DataBaseConnection {
             cursor.moveToNext();
         }
         cursor.close();
-        Log.d("TAG_NAME", resultSet.toString());
+        Log.d("JSON-Export: ", resultSet.toString());
         return resultSet;
     }
 
@@ -157,7 +157,7 @@ public class DataBaseConnection {
         return getEntries(date, -1);
     }
 
-    private List<Entry> getNewEntries(@Nullable Date date, int clientId) {
+    private List<Entry> getEntries(@Nullable Date date, int clientId) {
         List<Entry> entries = new ArrayList<>();
         String sql = "SELECT " + absoluteAllEntriesColumns + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
                 " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
@@ -174,7 +174,7 @@ public class DataBaseConnection {
         MySQLiteHelper.displayCursor(cursor, false);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
-            Entry entry = newCursorToEntry(cursor, null);
+            Entry entry = cursorToEntry(cursor, null);
             if (entry != null) {
                 // check if the WHERE query works and if not it is to be replaced
                 if (!Util.isSameDay(entry.date, date)) {
@@ -191,38 +191,6 @@ public class DataBaseConnection {
         return entries;
     }
 
-    private List<Entry> getEntries(@Nullable Date date, int clientId) {
-        if (DATABASE_VERSION == THIRD_VERSION) {
-            return getNewEntries(date, clientId);
-        } else {
-            List<Entry> entries = new ArrayList<>();
-            String where = "";
-            if (date != null) {
-                long startTime = Util.getStartOfDay(date).getTime() / 1000;
-                long endTime = Util.getEndOfDay(date).getTime() / 1000;
-                where += COLUMN_DATE + " > " + startTime + " AND " + COLUMN_DATE + " < " + endTime;
-            }
-            Cursor cursor = database.query(TABLE_ENTRIES, allEntriesColumns, where, null, null, null, null);
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                Entry entry = cursorToEntry(cursor, null);
-                if (entry != null) {
-                    // check if the WHERE query works and if not it is to be replaced
-                    if (!Util.isSameDay(entry.date, date)) {
-                        Log.e("Error Log by Dev :)", "Not same day!");
-                        entry.work += " Wrong date! Supposed to be on " + Util.formatDate(date) + ", " +
-                                "please inform developer!";
-                    }
-                    entries.add(entry);
-                }
-                cursor.moveToNext();
-            }
-            cursor.close();
-            Collections.reverse(entries);
-            return entries;
-        }
-    }
-
     public List<List<Entry>> getLastWeekEntries(Date date) {
         Date[] lastWeek = Util.getDatesOfLastWeek(date);
         List<List<Entry>> weekEntries = new ArrayList<>(4);
@@ -233,7 +201,7 @@ public class DataBaseConnection {
         return weekEntries;
     }
 
-    public static Entry newCursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
+    public static Entry cursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
         Entry entry = null;
         if(cursor.getCount() > 0) {
             int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
@@ -259,30 +227,6 @@ public class DataBaseConnection {
         return entry;
     }
 
-    public static Entry cursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
-        if(cursor.getCount() == 0) return null;
-        int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-        String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
-        long time = (long) cursor.getInt(cursor.getColumnIndex(COLUMN_DATE)) * 1000;
-        Date date = new Date(time);
-        if(onlyDate != null && !Util.isSameDay(date, onlyDate)) return null;
-        int duration = cursor.getInt(cursor.getColumnIndex(COLUMN_DURATION));
-        int installerId = cursor.getInt(cursor.getColumnIndex(COLUMN_INSTALLER_ID));
-        String work = cursor.getString(cursor.getColumnIndex(COLUMN_WORK));
-        String picturePath = cursor.getString(cursor.getColumnIndex(COLUMN_PICTURE_PATH));
-
-        Entry entry = new Entry(
-                client,
-                date,
-                duration,
-                installerId,
-                work
-        );
-        entry.id = id;
-        entry.setPicturePath(picturePath);
-        return entry;
-    }
-
     private int addClient(String client) {
         ContentValues values = new ContentValues();
         values.put(CLIENTS_COLUMN_NAME, client);
@@ -292,13 +236,8 @@ public class DataBaseConnection {
     public int saveEntry(Entry entry) {
         if(entry.installerId == -1) throw new IllegalArgumentException("You cannot add an entry without an installer!");
 
-        ContentValues values;
-        if (DATABASE_VERSION == THIRD_VERSION) {
-            int clientId = updateOrInsertClient(entry.client);
-            values = entryToValues(entry, clientId);
-        } else {
-            values = entryToValues(entry);
-        }
+        int clientId = updateOrInsertClient(entry.client);
+        ContentValues values = entryToValues(entry, clientId);
 
         // insert entry
         return (int) database.insert(TABLE_ENTRIES, null, values);
@@ -366,13 +305,8 @@ public class DataBaseConnection {
 
     public void editEntry(Entry entry) {
         if(entry.id != -1) {
-            ContentValues values;
-            if (DATABASE_VERSION == THIRD_VERSION) {
-                int clientId = updateOrInsertClient(entry.client);
-                values = entryToValues(entry, clientId);
-            } else {
-                values = entryToValues(entry);
-            }
+            int clientId = updateOrInsertClient(entry.client);
+            ContentValues values = entryToValues(entry, clientId);
             database.update(TABLE_ENTRIES, values, COLUMN_ID + "=" + entry.id, null);
         }
     }
@@ -389,55 +323,27 @@ public class DataBaseConnection {
         return entryValues;
     }
 
-    private ContentValues entryToValues(Entry entry) {
-        ContentValues entryValues = new ContentValues();
-        long time = entry.date.getTime() / 1000;
-        entryValues.put(COLUMN_DATE, time);
-        entryValues.put(COLUMN_DURATION, entry.duration);
-        entryValues.put(COLUMN_INSTALLER_ID, entry.installerId);
-        entryValues.put(COLUMN_WORK, entry.work);
-
-        return entryValues;
-    }
-
     // return true if exactly one row was removed
     public boolean deleteEntry(Entry entry) {
         return database.delete(TABLE_ENTRIES, COLUMN_ID + "=" + entry.id, null) == 1;
     }
 
     public Entry loadAverageEntry() {
-        if (DATABASE_VERSION == THIRD_VERSION) {
-            String sql = "SELECT " + absoluteAllEntriesColumns + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
-                    " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
-                    " WHERE " + TABLE_ENTRIES + "." + COLUMN_CLIENT_ID + " = " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID;
-            sql += " ORDER BY " + TABLE_ENTRIES + "." + COLUMN_DATE + " DESC LIMIT 1";
-            Cursor cursor = database.rawQuery(sql, null);
-            cursor.moveToFirst();
-            Entry entry = (cursor.getCount() > 0) ? newCursorToEntry(cursor, null) : null;
-            cursor.close();
-            return entry;
-        } else {
-            // actually i'm just going to load the last entry
-            Cursor cursor = database.query(
-                    TABLE_ENTRIES, allEntriesColumns, null, null, null, null, COLUMN_DATE + " DESC", "1");
-            cursor.moveToFirst();
-            return (cursor.getCount() > 0) ? cursorToEntry(cursor, null) : null;
-        }
+        String sql = "SELECT " + absoluteAllEntriesColumns + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
+                " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
+                " WHERE " + TABLE_ENTRIES + "." + COLUMN_CLIENT_ID + " = " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID;
+        sql += " ORDER BY " + TABLE_ENTRIES + "." + COLUMN_DATE + " DESC LIMIT 1";
+        Cursor cursor = database.rawQuery(sql, null);
+        cursor.moveToFirst();
+        Entry entry = (cursor.getCount() > 0) ? cursorToEntry(cursor, null) : null;
+        cursor.close();
+        return entry;
     }
 
     public boolean deleteInstaller(int installerId) {
         boolean installerDeleted = database.delete(TABLE_INSTALLERS, INSTALLERS_COLUMN_ID + "=" + installerId, null) == 1;
         database.delete(TABLE_ENTRIES, COLUMN_INSTALLER_ID + "=" + installerId, null);
         return installerDeleted;
-    }
-
-    public void upgradeDurations() {
-        int[] durations = {0, -1, 1, -1, 2, -1, 3, -1, 4, -1, 5, -1, 6, -1, 7, -1, 8, -1, 9, -1, 10, -1, 11, -1, 12, -1, -13, -1, 14, -1, 15, -1, 16, -1, 17, -1, 18, -1, 19, -1, 20, -1};
-        for (int i = durations.length - 1; i > 0; i--) {
-            //database.update(TABLE_ENTRIES, values, COLUMN_ID + "=" + entry.id, null);
-            if(durations[i] != -1) database.execSQL("UPDATE " + TABLE_ENTRIES + " SET " + COLUMN_DURATION + " = " + i + " WHERE " + COLUMN_DURATION + " = " + durations[i]);
-        }
-        //database.execSQL("UPDATE " + TABLE_ENTRIES + " SET " + COLUMN_DURATION + " = " + "("+COLUMN_DURATION+"  * 2) - 1" + " WHERE " + COLUMN_DURATION + " > 2");
     }
 
     // TODO doesnt work
@@ -448,7 +354,27 @@ public class DataBaseConnection {
         database.execSQL("UPDATE " + TABLE_INSTALLERS + " SET " + INSTALLERS_COLUMN_NAME + " = '" + newInstaller + "' WHERE " + INSTALLERS_COLUMN_NAME + " = '" + oldInstaller + "'");
     }
 
-    public List<String> getNewAllClients(boolean trim) {
+    public List<Client> getAllClientObjects(boolean trim) {
+        List<Client> clients = new ArrayList<>();
+        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS + " ORDER BY " + CLIENTS_COLUMN_NAME + " ASC", null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            int id = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_ID));
+            String name = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
+            if (trim) name = name.trim();
+            Client client = new Client(id, name);
+            client.tel = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
+            client.adress = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_ADRESS));
+            clients.add(client);
+            cursor.moveToNext();
+        }
+        cursor.close();
+        // remove duplicates
+        clients = new ArrayList<>(new LinkedHashSet<>(clients));
+        return clients;
+    }
+
+    public List<String> getAllClients(boolean trim) {
         List<String> clients = new ArrayList<>();
         Cursor cursor = database.rawQuery("SELECT " + CLIENTS_COLUMN_NAME + " FROM " + TABLE_CLIENTS + " ORDER BY " + CLIENTS_COLUMN_NAME + " ASC", null);
         cursor.moveToFirst();
@@ -462,46 +388,6 @@ public class DataBaseConnection {
         // remove duplicates
         clients = new ArrayList<>(new LinkedHashSet<>(clients));
         return clients;
-    }
-
-    public List<Client> getAllClientObjects(boolean trim) {
-        List<Client> clients = new ArrayList<>();
-        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS + " ORDER BY " + CLIENTS_COLUMN_NAME + " ASC", null);
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            int id = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_ID));
-            String name = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
-            if (trim) name = name.trim();
-            Client client = new Client(id, name);
-            client.tel = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
-            client.adress = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_ADRESS));
-            clients.add(client);
-            cursor.moveToNext();
-        }
-        cursor.close();
-        // remove duplicates
-        clients = new ArrayList<>(new LinkedHashSet<>(clients));
-        return clients;
-    }
-
-    public List<String> getAllClients(boolean trim) {
-        if (DATABASE_VERSION == THIRD_VERSION) {
-            return getNewAllClients(trim);
-        } else {
-            List<String> clients = new ArrayList<>();
-            Cursor cursor = database.query(true, TABLE_ENTRIES, new String[]{COLUMN_CLIENT}, null, null, null, null, null, null);
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                String client = cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT));
-                if (trim) client = client.trim();
-                clients.add(client);
-                cursor.moveToNext();
-            }
-            cursor.close();
-            // remove duplicates
-            clients = new ArrayList<>(new LinkedHashSet<>(clients));
-            return clients;
-        }
     }
 
     public int addPictureToEntry(int entryId, String pictureFile) {
@@ -520,7 +406,7 @@ public class DataBaseConnection {
         return getEntriesWithInstaller(null, clientId);
     }
 
-    public void saveClientDetails(int clientId, int tel, String adress) {
+    public void saveClientDetails(int clientId, String tel, String adress) {
         ContentValues values = new ContentValues();
         values.put(CLIENTS_COLUMN_TEL, tel);
         values.put(CLIENTS_COLUMN_ADRESS, adress);
@@ -536,7 +422,7 @@ public class DataBaseConnection {
         String name = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
         String adress = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_ADRESS));
         boolean noTel = cursor.isNull(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
-        int tel = noTel ? -1 : cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
+        String tel = noTel ? null : cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_TEL));
         cursor.close();
         Client client = new Client(clientId, name);
         client.adress = adress;

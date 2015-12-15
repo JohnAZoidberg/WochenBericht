@@ -100,7 +100,7 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
     }
 
     @Override
-    public void saveDetails(int clientId, int tel, String adress) {
+    public void saveDetails(int clientId, String tel, String adress) {
         dbConn.open();
         dbConn.saveClientDetails(clientId, tel, adress);
         dbConn.close();
