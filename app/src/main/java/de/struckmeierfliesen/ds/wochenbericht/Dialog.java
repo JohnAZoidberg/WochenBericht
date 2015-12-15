@@ -58,7 +58,7 @@ public class Dialog {
         dialog.show();
     }
 
-    public static void askForInput(@NonNull Context context, @StringRes int titleId, @StringRes int positiveId, @NonNull final Util.OnInputSubmitListener onPositiveListener) {
+    public static void askForInput(@NonNull Context context, @StringRes int titleId, @StringRes int positiveId, @NonNull final Util.OnInputSubmitListener<String> onPositiveListener) {
         askForInput(context, context.getString(titleId), context.getString(positiveId), onPositiveListener);
     }
 
@@ -94,7 +94,7 @@ public class Dialog {
 
     public static void selectImage(final Activity activity, final Entry entry, final Runnable runner) {
         final CharSequence[] items;
-        if (runner != null) {
+        if (runner != null && entry.getPicturePath() == null) {
             items = new String[] {
                     activity.getString(R.string.take_photo),
                     activity.getString(R.string.choose_from_library),
