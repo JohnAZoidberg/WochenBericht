@@ -81,16 +81,18 @@ public class DataBaseConnection {
     }
 
     public String exportDatabase() {
-        JSONArray entriesDb = tableToJSON(MySQLiteHelper.TABLE_ENTRIES);
-        JSONArray installerDb = tableToJSON(MySQLiteHelper.TABLE_INSTALLERS);
+        JSONArray entriesTable = tableToJSON(TABLE_ENTRIES);
+        JSONArray installersTable = tableToJSON(TABLE_INSTALLERS);
+        JSONArray clientsTable = tableToJSON(TABLE_CLIENTS);
 
         JSONObject databaseJSON = new JSONObject();
         String jsonString = "";
         try {
-            databaseJSON.put(TABLE_ENTRIES, entriesDb);
-            databaseJSON.put(TABLE_INSTALLERS, installerDb);
+            databaseJSON.put(TABLE_ENTRIES, entriesTable);
+            databaseJSON.put(TABLE_INSTALLERS, installersTable);
+            databaseJSON.put(TABLE_CLIENTS, clientsTable);
             jsonString = databaseJSON.toString();
-            System.out.println(jsonString);
+            Log.d("Exported JSON: ", jsonString);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -98,11 +100,10 @@ public class DataBaseConnection {
     }
 
     private JSONArray tableToJSON(String tableName) {
-        String searchQuery = "SELECT  * FROM " + tableName;
-        Cursor cursor = database.rawQuery(searchQuery, null);
-
         JSONArray resultSet = new JSONArray();
 
+        String searchQuery = "SELECT  * FROM " + tableName;
+        Cursor cursor = database.rawQuery(searchQuery, null);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             int totalColumn = cursor.getColumnCount();
@@ -111,13 +112,13 @@ public class DataBaseConnection {
                 if (cursor.getColumnName(i) != null) {
                     try {
                         if (cursor.getString(i) != null) {
-                            Log.d("TAG_NAME", cursor.getString(i));
+                            Log.d(cursor.getColumnName(i) + ": ", cursor.getString(i));
                             rowObject.put(cursor.getColumnName(i), cursor.getString(i));
                         } else {
-                            rowObject.put(cursor.getColumnName(i), "");
+                            rowObject.put(cursor.getColumnName(i), null);
                         }
-                    } catch (Exception e) {
-                        Log.d("TAG_NAME", e.getMessage());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -125,7 +126,6 @@ public class DataBaseConnection {
             cursor.moveToNext();
         }
         cursor.close();
-        Log.d("JSON-Export: ", resultSet.toString());
         return resultSet;
     }
 
@@ -138,6 +138,7 @@ public class DataBaseConnection {
             JSONObject jsonObject = new JSONObject(jsonString);
             importTable(jsonObject, TABLE_ENTRIES);
             importTable(jsonObject, TABLE_INSTALLERS);
+            importTable(jsonObject, TABLE_CLIENTS);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -155,6 +156,7 @@ public class DataBaseConnection {
                     String key = iter.next();
                     try {
                         Object value = entry.get(key);
+                        if (value == null) values.putNull(key);
                         if (value instanceof String) values.put(key, (String) value);
                         if (value instanceof Integer) values.put(key, (int) value);
                     } catch (JSONException e) {
