@@ -61,13 +61,27 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
         return client;
     }
 
-/*@Override
-    public String[] loadClients() {
+    @Override
+    public void deleteClient(int clientId) {
         dbConn.open();
-        List<String> allClients = dbConn.getAllClients(false);
+        dbConn.deleteClient(clientId);
         dbConn.close();
-        return allClients.toArray(new String[allClients.size()]);
-    }*/
+    }
+
+    @Override
+    public int renameClient(int clientId, String newName) {
+        dbConn.open();
+        int newId = dbConn.renameClient(clientId, newName);
+        dbConn.close();
+        return newId;
+    }
+
+    @Override
+    public void mergeClients(int merge, int with) {
+        dbConn.open();
+        dbConn.mergeClients(merge, with);
+        dbConn.close();
+    }
 
     @Override
     public List<Client> loadClientObjects() {

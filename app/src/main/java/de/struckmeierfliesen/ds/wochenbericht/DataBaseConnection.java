@@ -552,4 +552,37 @@ public class DataBaseConnection {
     public Client getClient(int clientId) {
         return queryClient(CLIENTS_COLUMN_ID + " = " + clientId);
     }
+
+    public void deleteClient(int clientId) {
+        database.delete(TABLE_CLIENTS, CLIENTS_COLUMN_ID + " = " + clientId, null);
+        database.delete(TABLE_ENTRIES, COLUMN_CLIENT_ID + " = " + clientId, null);
+    }
+
+    // -1 signals successful rename process, otherwise the id of the client with the same name is returned
+    public int renameClient(int clientId, String newName) {
+        Cursor query = database.query(TABLE_CLIENTS, new String[]{CLIENTS_COLUMN_ID}, CLIENTS_COLUMN_NAME + " = '" + newName + "'", null, null, null, null);
+        //Cursor query = database.query(TABLE_ENTRIES, new String[]{COLUMN_ID}, COLUMN_CLIENT_ID + " = " + clientId, null, null, null, null);
+        if (query.getCount() > 0) {
+            query.moveToFirst();
+            int oldId =  query.getInt(query.getColumnIndex(CLIENTS_COLUMN_ID));
+            query.close();
+            return oldId;
+        } else {
+            ContentValues values = new ContentValues();
+            values.put(CLIENTS_COLUMN_NAME, newName);
+            database.update(TABLE_CLIENTS, values, CLIENTS_COLUMN_ID + " = " + clientId, null);
+        }
+        return -1;
+    }
+
+    // merge is kept and with goes
+    public void mergeClients(int merge, int with) {
+        // edit old columns
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_CLIENT_ID, merge);
+        database.update(TABLE_ENTRIES, values, COLUMN_CLIENT_ID + " = " + with, null);
+
+        // delete old client
+        database.delete(TABLE_CLIENTS, CLIENTS_COLUMN_ID + " = " + with, null);
+    }
 }

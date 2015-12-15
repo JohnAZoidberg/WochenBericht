@@ -55,4 +55,8 @@
     <string name="delete_everything">Hiermit werden alle Einträge, Kunden und Gesellen gelöscht!</string>
     <string name="clients">Kunden</string>
     <string name="no_clients">Keine Kunden eingetragen.</string>
+    <string name="rename">Umbenennen</string>
+    <string name="delete_entries_for_client">Alle Einträge für diesen Kunden werden gelöscht.</string>
+    <string name="merge">Verschmelzen?</string>
+    <string name="really_merge">Es gibt schon einen Kunden mit dem Namen.\nWillst du sie verschmelzen?</string>
 </resources>

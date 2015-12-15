@@ -54,4 +54,8 @@
     <string name="delete_everything">All entries, clients and installers will be deleted!</string>
     <string name="clients">Clients</string>
     <string name="no_clients">No clients</string>
+    <string name="rename">Rename</string>
+    <string name="delete_entries_for_client">All entries for this client will be deleted.</string>
+    <string name="really_merge">There already exists a client with this name. Do you want to merge them?</string>
+    <string name="merge">Merge?</string>
 </resources>

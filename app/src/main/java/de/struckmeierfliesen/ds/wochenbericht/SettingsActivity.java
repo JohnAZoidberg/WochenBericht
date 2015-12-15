@@ -96,6 +96,7 @@ public class SettingsActivity extends AppCompatActivity {
                 dbConn.close();
                 try {
                     Files.write(databaseJsonString, Util.newFile("azubilogDB.json"), Charset.forName("UTF-8"));
+                    de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(SettingsActivity.this, "Exportiert!");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

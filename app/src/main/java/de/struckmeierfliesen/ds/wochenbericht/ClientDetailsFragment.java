@@ -10,6 +10,9 @@ import android.telephony.PhoneNumberUtils;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -18,7 +21,7 @@ import java.util.List;
 
 import static de.struckmeierfliesen.ds.wochenbericht.ClientListFragment.ClientLoaderActivity;
 
-public class ClientDetailsFragment extends Fragment implements ClientActivity.Updatable{
+public class ClientDetailsFragment extends Fragment implements ClientActivity.Updatable {
 
     public static final String ARG_CLIENT_NAME = "client.name";
     public static final String ARG_CLIENT_ID = "client.id";
@@ -33,6 +36,8 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+        setHasOptionsMenu(true);
         View rootView = inflater.inflate(R.layout.content_client_details, container, false);
         activity = (ClientLoaderActivity) getActivity();
 
@@ -63,7 +68,7 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
         };
         telText = (EditText) rootView.findViewById(R.id.telText);
         adressText = (EditText) rootView.findViewById(R.id.adressText);
-        telText.setFilters(new InputFilter[] { filter });
+        telText.setFilters(new InputFilter[]{filter});
         if (client.tel != -1) telText.setText(String.valueOf(client.tel));
         if (client.adress != null) adressText.setText(client.adress);
 
@@ -75,6 +80,60 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
         recyclerView.setAdapter(entryListAdapter);
         return rootView;
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_client, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.action_rename:
+                renameClient();
+                return true;
+            case R.id.action_delete:
+                deleteClient();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void renameClient() {
+        Dialog.askForInput(activity, R.string.rename, R.string.rename, new Util.OnInputSubmitListener<String>() {
+            @Override
+            public void onSubmit(View v, String input) {
+                final int newId = activity.renameClient(client.id, input);
+                if (newId != -1) {
+                    Dialog.askForConfirmation(activity, R.string.merge, R.string.really_merge, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            activity.mergeClients(newId, client.id);
+                            leaveFragment();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void deleteClient() {
+        Dialog.askForConfirmation(activity, R.string.really_delete, R.string.delete_entries_for_client, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activity.deleteClient(client.id);
+                leaveFragment();
+            }
+        });
+    }
+
+    public void leaveFragment() {
+        // TODO maybe not optimal behaviour
+        getFragmentManager().popBackStack();
+        //activity.finish();
+    }
+
 
     @Override
     public void update() {

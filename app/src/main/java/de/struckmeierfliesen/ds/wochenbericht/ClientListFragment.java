@@ -64,8 +64,10 @@ public class ClientListFragment extends Fragment {
     abstract public static class ClientLoaderActivity extends AppCompatActivity {
         public abstract Client loadClient(int clientId);
         public abstract Client loadClient(String client);
+        public abstract void deleteClient(int clientId);
+        public abstract int renameClient(int clientId, String newName);
+        public abstract void mergeClients(int merge, int with);
         public abstract List<Client> loadClientObjects();
-        //public abstract List<Entry> loadEntries(String client);
         public abstract List<Entry> loadEntries(int clientId);
         public abstract void saveDetails(int clientId, int tel, String adress);
     }
