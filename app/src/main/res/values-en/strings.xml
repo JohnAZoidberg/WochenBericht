@@ -58,4 +58,5 @@
     <string name="delete_entries_for_client">All entries for this client will be deleted.</string>
     <string name="really_merge">There already exists a client with this name. Do you want to merge them?</string>
     <string name="merge">Merge?</string>
+    <string name="call">Call</string>
 </resources>

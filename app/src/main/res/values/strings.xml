@@ -59,4 +59,5 @@
     <string name="delete_entries_for_client">Alle Einträge für diesen Kunden werden gelöscht.</string>
     <string name="merge">Verschmelzen?</string>
     <string name="really_merge">Es gibt schon einen Kunden mit dem Namen.\nWillst du sie verschmelzen?</string>
+    <string name="call">Anrufen</string>
 </resources>

@@ -1,6 +1,8 @@
 package de.struckmeierfliesen.ds.wochenbericht;
 
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -90,14 +92,27 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
+            case R.id.action_call:
+                call();
+                return true;
             case R.id.action_rename:
                 renameClient();
                 return true;
             case R.id.action_delete:
                 deleteClient();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void call() {
+        String tel = telText.getText().toString().trim();
+        if (!tel.isEmpty()) {
+            Uri number = Uri.parse("tel:" + tel);
+            Intent callIntent = new Intent(Intent.ACTION_DIAL, number);
+            startActivity(callIntent);
+        }
     }
 
     private void renameClient() {
