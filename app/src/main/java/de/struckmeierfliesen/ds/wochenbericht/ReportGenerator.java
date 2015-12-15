@@ -102,8 +102,8 @@ public class ReportGenerator {
         // Wochenstunden
         addText(Util.convertDuration(weekDurationSum), 510, height - 606);
         // Bemerkungen
-        String[] comments = new String[] {comment, ""};
-        if(comment.length() > CUTOFF) {
+        String[] comments = new String[]{comment, ""};
+        if (comment.length() > CUTOFF) {
             comments[0] = comment.substring(0, CUTOFF + 1);
             comments[1] = comment.substring(CUTOFF + 1);
         }
@@ -121,7 +121,7 @@ public class ReportGenerator {
     private String[] loadNames() {
         String firstName = sharedPrefs.getString("firstName", "");
         String name = sharedPrefs.getString("name", "");
-        return new String[] {firstName, name};
+        return new String[]{firstName, name};
     }
 
     private List<List<Entry>> getWeekOfEntries(Date date) {

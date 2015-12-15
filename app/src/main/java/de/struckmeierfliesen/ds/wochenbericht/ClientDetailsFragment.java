@@ -91,7 +91,7 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.action_call:
                 call();
                 return true;

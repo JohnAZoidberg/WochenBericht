@@ -38,15 +38,15 @@ public class Util {
     private static Random randomGenerator = new Random();
 
     public static String convertDuration(int duration, String divider) {
-        String hours =  String.valueOf((int) Math.floor(duration / 4d));
+        String hours = String.valueOf((int) Math.floor(duration / 4d));
         String minutes = "00";
-        if(duration % 4 == 0) {
+        if (duration % 4 == 0) {
             minutes = "00";
-        } else if((duration + 1) % 4 == 0) {
+        } else if ((duration + 1) % 4 == 0) {
             minutes = "45";
-        } else if((duration + 2) % 4 == 0) {
+        } else if ((duration + 2) % 4 == 0) {
             minutes = "30";
-        } else if((duration + 3) % 4 == 0) {
+        } else if ((duration + 3) % 4 == 0) {
             minutes = "15";
         }
         return hours + divider + minutes;
@@ -58,10 +58,10 @@ public class Util {
 
     public static int convertDuration(String durationString) {
         String[] split = durationString.split(":");
-        if(split[1].equals("15")) return 1;
+        if (split[1].equals("15")) return 1;
         int hrs = Integer.parseInt(split[0]);
         int mnts = 0;
-        switch(split[1]) {
+        switch (split[1]) {
             case "00":
                 mnts = 0;
                 break;
@@ -75,7 +75,7 @@ public class Util {
                 mnts = 3;
                 break;
         }
-        return  hrs * 4 + mnts;
+        return hrs * 4 + mnts;
         // TODO has not been tested
     }
 
@@ -91,7 +91,7 @@ public class Util {
         int day = cal.get(Calendar.DAY_OF_MONTH);
         int month = cal.get(Calendar.MONTH);
         int year = cal.get(Calendar.YEAR);
-        return new int[] {day, month, year};
+        return new int[]{day, month, year};
     }
 
     public static Date addDays(Date date, int value) {
@@ -102,9 +102,9 @@ public class Util {
     }
 
     public static int getDayDifference(Date date1, Date date2) {
-        if(isSameDay(date1, date2)) return 0;
-        else if(isSameDay(addDays(date1, 1), date2)) return -1;
-        else if(isSameDay(addDays(date1, -1), date2)) return 1;
+        if (isSameDay(date1, date2)) return 0;
+        else if (isSameDay(addDays(date1, 1), date2)) return -1;
+        else if (isSameDay(addDays(date1, -1), date2)) return 1;
         else {
             long diffInMillies = date1.getTime() - date2.getTime();
             return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
@@ -153,10 +153,10 @@ public class Util {
         calendar.setTime(date);
         int day = calendar.get(Calendar.DAY_OF_WEEK);
         String[] days;
-        if(Locale.getDefault().getCountry().equals(Locale.ENGLISH.getCountry())) {
-            days = new String[] {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
+        if (Locale.getDefault().getCountry().equals(Locale.ENGLISH.getCountry())) {
+            days = new String[]{"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
         } else {
-            days = new String[] {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
+            days = new String[]{"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
         }
         return days[day - 1];
     }
@@ -254,7 +254,7 @@ public class Util {
 
     public static String getPath(Uri uri, Context context) {
         String res = null;
-        String[] proj = { MediaStore.Images.Media.DATA };
+        String[] proj = {MediaStore.Images.Media.DATA};
         Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
         if (cursor.moveToFirst()) {
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
@@ -270,7 +270,7 @@ public class Util {
 
     @BindingAdapter("app:imagePath")
     public static void loadImage(ImageView view, String imagePath) {
-        if (imagePath != null  && !imagePath.isEmpty()) {
+        if (imagePath != null && !imagePath.isEmpty()) {
             Picasso.with(view.getContext())
                     .load(new File(imagePath))
                     .resize(200, 200)
@@ -293,7 +293,7 @@ public class Util {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
             activity.startActivityForResult(intent, REQUEST_CAMERA);
-        }else {
+        } else {
             Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             intent.setType("image/*");
             activity.startActivityForResult(Intent.createChooser(intent, activity.getString(R.string.select_file)), SELECT_FILE);
@@ -342,7 +342,7 @@ public class Util {
             newX = oldX * (oldY / newY);
         }
 
-        return new int[] {newX, newY};
+        return new int[]{newX, newY};
     }
 
     public static boolean randomBoolean() {

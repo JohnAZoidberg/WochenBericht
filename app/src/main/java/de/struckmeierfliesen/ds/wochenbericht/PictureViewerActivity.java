@@ -44,10 +44,10 @@ public class PictureViewerActivity extends AppCompatActivity implements GestureD
 
         // Set the Drawable displayed
         final Intent intent = getIntent();
-        if(intent.hasExtra("fileName")) {
+        if (intent.hasExtra("fileName")) {
             fileName = intent.getStringExtra("fileName");
         }
-        if(intent.hasExtra("title")) {
+        if (intent.hasExtra("title")) {
             title = intent.getStringExtra("title");
             if (title == null) title = "null";
         }
@@ -135,7 +135,7 @@ public class PictureViewerActivity extends AppCompatActivity implements GestureD
 
     @Override
     public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent2, float v, float v2) {
-        if(motionEvent.getEdgeFlags() == MotionEvent.EDGE_TOP) {
+        if (motionEvent.getEdgeFlags() == MotionEvent.EDGE_TOP) {
             hidden = true;
             toggleHideyBar();
             textView.toggle(hidden, true, false);

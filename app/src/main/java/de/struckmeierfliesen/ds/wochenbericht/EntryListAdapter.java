@@ -92,7 +92,8 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
             binding.entriesList.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(clickListener != null) clickListener.entryClicked(v, items.get(getAdapterPosition()));
+                    if (clickListener != null)
+                        clickListener.entryClicked(v, items.get(getAdapterPosition()));
                 }
             });
             binding.entriesList.setOnLongClickListener(new View.OnLongClickListener() {

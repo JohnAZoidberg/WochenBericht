@@ -26,7 +26,7 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar supportActionBar = getSupportActionBar();
-        if(supportActionBar != null) supportActionBar.setDisplayHomeAsUpEnabled(true);
+        if (supportActionBar != null) supportActionBar.setDisplayHomeAsUpEnabled(true);
 
         // prevent overlapping fragments
         if (savedInstanceState != null) {
@@ -109,7 +109,7 @@ public class ClientActivity extends ClientListFragment.ClientLoaderActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (Util.handlePictureResult(requestCode, resultCode, data, this)){
+        if (Util.handlePictureResult(requestCode, resultCode, data, this)) {
             if (fragment instanceof Updatable) {
                 ((Updatable) fragment).update();
                 Dialog.alert(this, "yayyyyyy");

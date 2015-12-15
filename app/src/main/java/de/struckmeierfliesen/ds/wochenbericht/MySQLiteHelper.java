@@ -15,7 +15,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_ENTRIES = "entries";
     public static final String COLUMN_ID = "id";
-    @Deprecated public static final String COLUMN_CLIENT = "client";
+    @Deprecated
+    public static final String COLUMN_CLIENT = "client";
     public static final String COLUMN_CLIENT_ID = "client_id";
     public static final String COLUMN_DATE = "date";
     public static final String COLUMN_DURATION = "duration";
@@ -44,17 +45,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String CREATE_TABLE_ENTRIES = "CREATE TABLE IF NOT EXISTS "
             + TABLE_ENTRIES + "("
             + COLUMN_ID + " integer primary key, "
-            + COLUMN_CLIENT + " text not null, "
-            + COLUMN_DATE + " integer not null, "
-            + COLUMN_DURATION + " integer not null, "
-            + COLUMN_INSTALLER_ID + " integer not null, "
-            + COLUMN_PICTURE_PATH + " text, "
-            + COLUMN_WORK + " text not null);";
-
-    private static final String CREATE_NEW_TABLE_ENTRIES = "CREATE TABLE IF NOT EXISTS "
-            + TABLE_ENTRIES + "("
-            + COLUMN_ID + " integer primary key, "
-            //+ COLUMN_CLIENT + " text not null, "
             + COLUMN_CLIENT_ID + " integer not null, "
             + COLUMN_DATE + " integer not null, "
             + COLUMN_DURATION + " integer not null, "
@@ -94,78 +84,75 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         final String TEMP_TABLE = "temp_table";
         switch (newVersion) {
             case SECOND_VERSION:
-            String upgradeQuery = "ALTER TABLE " + TABLE_ENTRIES + " ADD COLUMN " + COLUMN_PICTURE_PATH + " TEXT";
-            db.execSQL(upgradeQuery);
+                String upgradeQuery = "ALTER TABLE " + TABLE_ENTRIES + " ADD COLUMN " + COLUMN_PICTURE_PATH + " TEXT";
+                db.execSQL(upgradeQuery);
 
             case THIRD_VERSION:
-            // Create new table
-            db.execSQL(CREATE_TABLE_CLIENTS);
+                // Create new table
+                db.execSQL(CREATE_TABLE_CLIENTS);
 
-            // Fetch all existing clients
-            List<String> clients = new ArrayList<>();
-            String[] cols = {COLUMN_CLIENT};
-            Cursor cursor = db.query(TABLE_ENTRIES, cols, null, null, null, null, null);
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                clients.add(cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT)));
-                cursor.moveToNext();
-            }
-            cursor.close();
-            // remove duplicates
-            clients = new ArrayList<>(new LinkedHashSet<>(clients));
+                // Fetch all existing clients
+                List<String> clients = new ArrayList<>();
+                String[] cols = {COLUMN_CLIENT};
+                Cursor cursor = db.query(TABLE_ENTRIES, cols, null, null, null, null, null);
+                cursor.moveToFirst();
+                while (!cursor.isAfterLast()) {
+                    clients.add(cursor.getString(cursor.getColumnIndex(COLUMN_CLIENT)));
+                    cursor.moveToNext();
+                }
+                cursor.close();
+                // remove duplicates
+                clients = new ArrayList<>(new LinkedHashSet<>(clients));
 
-            // add new row
-            db.execSQL("ALTER TABLE " + TABLE_ENTRIES + " ADD COLUMN " + COLUMN_CLIENT_ID + " integer");
+                // add new row
+                db.execSQL("ALTER TABLE " + TABLE_ENTRIES + " ADD COLUMN " + COLUMN_CLIENT_ID + " integer");
 
-            // insert ids into old table
-            for (int i = 0; i < clients.size(); i++) {
-                String client = clients.get(i);
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_CLIENT_ID, i + 1);
-                int update = db.update(TABLE_ENTRIES, values, COLUMN_CLIENT + " = '" + client + "'", null);
+                // insert ids into old table
+                for (int i = 0; i < clients.size(); i++) {
+                    String client = clients.get(i);
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_CLIENT_ID, i + 1);
+                    int update = db.update(TABLE_ENTRIES, values, COLUMN_CLIENT + " = '" + client + "'", null);
 
-                values = new ContentValues();
-                values.put(CLIENTS_COLUMN_NAME, client);
-                int insert = (int) db.insert(TABLE_CLIENTS, null, values);
-            }
+                    values = new ContentValues();
+                    values.put(CLIENTS_COLUMN_NAME, client);
+                    int insert = (int) db.insert(TABLE_CLIENTS, null, values);
+                }
 
-            // SFSDJFLKSDFJLSDFJLSKDJFKLÖSJFKLÖJSDFKLÖJSDFLÖJSDÖFKLJSDÖFKLJSDFÖLJSFLÖKD
-            // rename table
-            db.execSQL("ALTER TABLE " + TABLE_ENTRIES + " RENAME TO " + TEMP_TABLE);
+                // rename table
+                db.execSQL("ALTER TABLE " + TABLE_ENTRIES + " RENAME TO " + TEMP_TABLE);
 
-            // create new table
-            db.execSQL(CREATE_NEW_TABLE_ENTRIES);
+                // create new table
+                db.execSQL(CREATE_TABLE_ENTRIES);
 
-            // fill new table
-            db.execSQL("INSERT OR IGNORE INTO " + TABLE_ENTRIES + " ("
-                    + COLUMN_ID + ", "
-                    + COLUMN_CLIENT_ID + ", "
-                    + COLUMN_DATE + ", "
-                    + COLUMN_DURATION + ", "
-                    + COLUMN_INSTALLER_ID + ", "
-                    + COLUMN_PICTURE_PATH + ", "
-                    + COLUMN_WORK
-                    + ") SELECT "
-                    + COLUMN_ID + ", "
-                    + COLUMN_CLIENT_ID + ", "
-                    + COLUMN_DATE + ", "
-                    + COLUMN_DURATION + ", "
-                    + COLUMN_INSTALLER_ID + ", "
-                    + COLUMN_PICTURE_PATH + ", "
-                    + COLUMN_WORK
-                    + " FROM " + TEMP_TABLE);
+                // fill new table
+                db.execSQL("INSERT OR IGNORE INTO " + TABLE_ENTRIES + " ("
+                        + COLUMN_ID + ", "
+                        + COLUMN_CLIENT_ID + ", "
+                        + COLUMN_DATE + ", "
+                        + COLUMN_DURATION + ", "
+                        + COLUMN_INSTALLER_ID + ", "
+                        + COLUMN_PICTURE_PATH + ", "
+                        + COLUMN_WORK
+                        + ") SELECT "
+                        + COLUMN_ID + ", "
+                        + COLUMN_CLIENT_ID + ", "
+                        + COLUMN_DATE + ", "
+                        + COLUMN_DURATION + ", "
+                        + COLUMN_INSTALLER_ID + ", "
+                        + COLUMN_PICTURE_PATH + ", "
+                        + COLUMN_WORK
+                        + " FROM " + TEMP_TABLE);
 
-            // remove old table
-            db.execSQL("DROP TABLE " + TEMP_TABLE);
+                // remove old table
+                db.execSQL("DROP TABLE " + TEMP_TABLE);
 
-            // KLJSDFKLÖJSDKLÖFJ KLSDJF KLJSDFKL ÖJSKLÖF JSLÖKDJFKLÖSDJFLÖ KJSDF
-
-            String sql = "SELECT " + TABLE_ENTRIES + "." + COLUMN_WORK + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
-                    " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
-                    " WHERE " + TABLE_ENTRIES + "." + COLUMN_CLIENT_ID + " = " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID;
-            cursor = db.rawQuery(
-                    sql + " AND " + TABLE_ENTRIES + "." + COLUMN_WORK + " = 'Wartung '", null);
-            displayCursor(cursor, false);
+                String sql = "SELECT " + TABLE_ENTRIES + "." + COLUMN_WORK + ", " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_NAME +
+                        " FROM " + TABLE_ENTRIES + ", " + TABLE_CLIENTS +
+                        " WHERE " + TABLE_ENTRIES + "." + COLUMN_CLIENT_ID + " = " + TABLE_CLIENTS + "." + CLIENTS_COLUMN_ID;
+                cursor = db.rawQuery(
+                        sql + " AND " + TABLE_ENTRIES + "." + COLUMN_WORK + " = 'Wartung '", null);
+                displayCursor(cursor, false);
 
             case FOURTH_VERSION:
                 // rename table
@@ -179,7 +166,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
                 // remove old table
                 db.execSQL("DROP TABLE " + TEMP_TABLE);
-                Log.d("fasdf", "onUpgrade: jasdlkfjasklfj");
+                Log.d("DB", "onUpgrade: Fourth Version successfully installed");
 
         }
     }

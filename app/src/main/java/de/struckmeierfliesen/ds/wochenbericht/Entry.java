@@ -49,7 +49,7 @@ public class Entry {
     @Override
     public String toString() {
         String installer = installerId + "";
-        if(this.installer != null) installer = this.installer;
+        if (this.installer != null) installer = this.installer;
         return "\"" + work + "\" ( " + Util.formatDate(date) + ")" +
                 "bei " + client + " mit " + getInstaller() + "(" + installer + ")";
     }

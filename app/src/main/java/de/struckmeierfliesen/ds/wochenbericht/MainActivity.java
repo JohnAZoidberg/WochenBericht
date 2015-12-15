@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar supportActionBar = getSupportActionBar();
-        if(supportActionBar != null) supportActionBar.setDisplayShowTitleEnabled(false);
+        if (supportActionBar != null) supportActionBar.setDisplayShowTitleEnabled(false);
 
         changeDateButton = (TextView) findViewById(R.id.changeDate);
         setDate(date);
@@ -107,9 +107,9 @@ public class MainActivity extends AppCompatActivity {
         durationSpinner = (Spinner) findViewById(R.id.durationSpinner);
         List<String> durationStrings = new ArrayList<String>();
         // add dummy duration as description
-        if(avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
+        if (avgEntry == null) durationStrings.add(getResources().getString(R.string.duration));
         durationStrings.add("0:15 h");
-        for(int i = 2; i <= 4*9; i+=2) {
+        for (int i = 2; i <= 4 * 9; i += 2) {
             durationStrings.add(Util.convertDuration(i) + " h");
         }
         ArrayAdapter<String> durationAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, durationStrings);
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 int actualPosition = 1 + position - ((avgEntry == null) ? 1 : 0);
                 if (actualPosition == 1 || actualPosition == 2) duration = actualPosition;
                 else {
-                    duration = (actualPosition  * 2) - 2;
+                    duration = (actualPosition * 2) - 2;
                 }
             }
 
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        if(avgEntry != null) setDuration(avgEntry.duration);
+        if (avgEntry != null) setDuration(avgEntry.duration);
 
         // set up saveButton
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //TODO installerSpinner.setSelection(0);
-        if(avgEntry != null) {
+        if (avgEntry != null) {
             setInstallerById(avgEntry.installerId);
             installerId = avgEntry.installerId;
         }
@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
@@ -320,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             dialog = ProgressDialog.show(MainActivity.this, getResources().getString(R.string.generate_summary),
-                getString(R.string.loading_please_wait), true, false);
+                    getString(R.string.loading_please_wait), true, false);
         }
 
         @Override
@@ -335,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
-            if(params.length != 3) return null;
+            if (params.length != 3) return null;
             String comment = params[0];
             String pageNumber = params[1];
             String yearNumber = params[2];
@@ -399,14 +399,14 @@ public class MainActivity extends AppCompatActivity {
         installers = dbConn.getInstallers();
         dbConn.close();
         installerStrings.clear();
-        if(addDummy) installerStrings.add(getResources().getString(R.string.installer));
-        for(String s : installers.keySet()) installerStrings.add(s);
+        if (addDummy) installerStrings.add(getResources().getString(R.string.installer));
+        for (String s : installers.keySet()) installerStrings.add(s);
         installerStrings.add(getString(R.string.add_installer)); // add dummy installer which acts as a button
     }
 
     private void addEntry(Entry entry) {
         dbConn.open();
-        if(entry != null) {
+        if (entry != null) {
             entry.id = dbConn.saveEntry(entry);
             EntryListFragment currentFragment = getCurrentFragment();
             if (currentFragment.getItemCount() > 5) {
@@ -422,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
         String clientName = clientEdit.getText().toString().trim();
         String workString = workEdit.getText().toString().trim();
 
-        if(workString.length() == 0 || clientName.length() == 0 || duration == -1 || installerId == -1) {
+        if (workString.length() == 0 || clientName.length() == 0 || duration == -1 || installerId == -1) {
             de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.please_enter_input));
             return null;
         }
@@ -451,8 +451,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void setTotalDuration(int durationCode) {
         String duration = Util.convertDuration(durationCode);
-        if (durationCode >=88 ) de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.over_twentyfour));
-        else if (durationCode >=48 ) de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.over_twelve));
+        if (durationCode >= 88)
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.over_twentyfour));
+        else if (durationCode >= 48)
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.over_twelve));
         totalDurationView.setText(getResources().getQuantityString(
                 R.plurals.xHours, duration.equals("1:00") ? 1 : 2, duration));
     }
@@ -572,7 +574,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopEditing(boolean clearEdits) {
-        if(clearEdits) {
+        if (clearEdits) {
             clientEdit.setText("");
             workEdit.setText("");
         }
@@ -583,7 +585,7 @@ public class MainActivity extends AppCompatActivity {
     private void setDate(Date date) {
         this.date = date;
         changeDateButton.setText(new StringBuilder().append(Util.getDayAbbrev(date)).append(" ").append(DateFormat.format("dd.MM.yy", date)).append("  ").toString());
-        if (! Util.isSameDay(new Date(), date)) {
+        if (!Util.isSameDay(new Date(), date)) {
             changeDateButton.setTextColor(0xFFFFFFFF);
         } else {
             changeDateButton.setTextColor(ContextCompat.getColor(this, R.color.colorPrimaryFont));

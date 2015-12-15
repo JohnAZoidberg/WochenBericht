@@ -31,11 +31,11 @@ public class DataBaseConnection {
 
     private final String absoluteAllEntriesColumns =
             TABLE_ENTRIES + "." + COLUMN_ID + ", " +
-            TABLE_ENTRIES + "." + COLUMN_DATE + ", " +
-            TABLE_ENTRIES + "." + COLUMN_DURATION + ", " +
-            TABLE_ENTRIES + "." + COLUMN_INSTALLER_ID + ", " +
-            TABLE_ENTRIES + "." + COLUMN_WORK + ", " +
-            TABLE_ENTRIES + "." + COLUMN_PICTURE_PATH;
+                    TABLE_ENTRIES + "." + COLUMN_DATE + ", " +
+                    TABLE_ENTRIES + "." + COLUMN_DURATION + ", " +
+                    TABLE_ENTRIES + "." + COLUMN_INSTALLER_ID + ", " +
+                    TABLE_ENTRIES + "." + COLUMN_WORK + ", " +
+                    TABLE_ENTRIES + "." + COLUMN_PICTURE_PATH;
 
     private final String[] allEntriesColumns = {
             COLUMN_ID,
@@ -91,18 +91,16 @@ public class DataBaseConnection {
         while (!cursor.isAfterLast()) {
             int totalColumn = cursor.getColumnCount();
             JSONObject rowObject = new JSONObject();
-            for (int i = 0 ; i < totalColumn ; i++) {
+            for (int i = 0; i < totalColumn; i++) {
                 if (cursor.getColumnName(i) != null) {
                     try {
                         if (cursor.getString(i) != null) {
                             Log.d("TAG_NAME", cursor.getString(i));
                             rowObject.put(cursor.getColumnName(i), cursor.getString(i));
-                        }
-                        else {
+                        } else {
                             rowObject.put(cursor.getColumnName(i), "");
                         }
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         Log.d("TAG_NAME", e.getMessage());
                     }
                 }
@@ -153,6 +151,7 @@ public class DataBaseConnection {
             e.printStackTrace();
         }
     }
+
     private List<Entry> getEntries(@Nullable Date date) {
         return getEntries(date, -1);
     }
@@ -203,7 +202,7 @@ public class DataBaseConnection {
 
     public static Entry cursorToEntry(Cursor cursor, @Nullable Date onlyDate) {
         Entry entry = null;
-        if(cursor.getCount() > 0) {
+        if (cursor.getCount() > 0) {
             int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
             String client = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
             long time = (long) cursor.getInt(cursor.getColumnIndex(COLUMN_DATE)) * 1000;
@@ -234,7 +233,8 @@ public class DataBaseConnection {
     }
 
     public int saveEntry(Entry entry) {
-        if(entry.installerId == -1) throw new IllegalArgumentException("You cannot add an entry without an installer!");
+        if (entry.installerId == -1)
+            throw new IllegalArgumentException("You cannot add an entry without an installer!");
 
         int clientId = updateOrInsertClient(entry.client);
         ContentValues values = entryToValues(entry, clientId);
@@ -282,7 +282,7 @@ public class DataBaseConnection {
     public List<Entry> idToInstaller(List<Entry> entries) {
         BiMap<Integer, String> biInstallers = getInstallers().inverse();
 
-        for(Entry entry : entries) {
+        for (Entry entry : entries) {
             entry.installer = biInstallers.get(entry.installerId);
         }
         return entries;
@@ -304,7 +304,7 @@ public class DataBaseConnection {
     }
 
     public void editEntry(Entry entry) {
-        if(entry.id != -1) {
+        if (entry.id != -1) {
             int clientId = updateOrInsertClient(entry.client);
             ContentValues values = entryToValues(entry, clientId);
             database.update(TABLE_ENTRIES, values, COLUMN_ID + "=" + entry.id, null);
@@ -450,7 +450,7 @@ public class DataBaseConnection {
         //Cursor query = database.query(TABLE_ENTRIES, new String[]{COLUMN_ID}, COLUMN_CLIENT_ID + " = " + clientId, null, null, null, null);
         if (query.getCount() > 0) {
             query.moveToFirst();
-            int oldId =  query.getInt(query.getColumnIndex(CLIENTS_COLUMN_ID));
+            int oldId = query.getInt(query.getColumnIndex(CLIENTS_COLUMN_ID));
             query.close();
             return oldId;
         } else {

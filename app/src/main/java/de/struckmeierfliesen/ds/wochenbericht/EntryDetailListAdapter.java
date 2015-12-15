@@ -14,7 +14,7 @@ import java.util.List;
 
 import de.struckmeierfliesen.ds.wochenbericht.databinding.EntryDetailListBinding;
 
-public class EntryDetailListAdapter extends RecyclerView.Adapter<EntryDetailListAdapter.EntryHolder>{
+public class EntryDetailListAdapter extends RecyclerView.Adapter<EntryDetailListAdapter.EntryHolder> {
 
     private List<Entry> items;
 

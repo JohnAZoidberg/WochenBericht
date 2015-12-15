@@ -39,7 +39,7 @@ public class Dialog {
                 .setTitle(title)
                 .setPositiveButton(context.getString(R.string.yes), null)
                 .setNegativeButton(context.getString(R.string.no), null);
-        if(message != null) builder.setMessage(message);
+        if (message != null) builder.setMessage(message);
         final AlertDialog dialog = builder.create();
 
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -95,13 +95,13 @@ public class Dialog {
     public static void selectImage(final Activity activity, final Entry entry, final Runnable runner) {
         final CharSequence[] items;
         if (runner != null && entry.getPicturePath() == null) {
-            items = new String[] {
+            items = new String[]{
                     activity.getString(R.string.take_photo),
                     activity.getString(R.string.choose_from_library),
                     activity.getString(R.string.delete)
             };
         } else {
-            items = new String[] {
+            items = new String[]{
                     activity.getString(R.string.take_photo),
                     activity.getString(R.string.choose_from_library)
             };

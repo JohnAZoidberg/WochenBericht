@@ -19,7 +19,7 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         long when = System.currentTimeMillis();
-        if(Util.getDayDifference(new Date(), date)  == 0) return;
+        if (Util.getDayDifference(new Date(), date) == 0) return;
         NotificationManager notificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
 

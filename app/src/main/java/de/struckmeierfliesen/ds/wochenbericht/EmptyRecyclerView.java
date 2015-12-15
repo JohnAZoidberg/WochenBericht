@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class EmptyRecyclerView extends RecyclerView {
-    @Nullable View emptyView;
+    @Nullable
+    View emptyView;
 
     public EmptyRecyclerView(Context context) {
         super(context);
@@ -31,7 +32,8 @@ public class EmptyRecyclerView extends RecyclerView {
 
     @NotNull
     public final AdapterDataObserver observer = new AdapterDataObserver() {
-        @Override public void onChanged() {
+        @Override
+        public void onChanged() {
             super.onChanged();
             checkIfEmpty();
         }

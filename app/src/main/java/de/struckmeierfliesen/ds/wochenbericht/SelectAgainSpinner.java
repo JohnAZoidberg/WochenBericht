@@ -7,6 +7,7 @@ import android.widget.Spinner;
 
 public class SelectAgainSpinner extends Spinner {
     OnItemSelectedListener mOnItemSelectedListener;
+
     public SelectAgainSpinner(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -15,7 +16,7 @@ public class SelectAgainSpinner extends Spinner {
     public void setSelection(int position) {
         super.setSelection(position);
 
-        if(position == getSelectedItemPosition() && mOnItemSelectedListener != null) {
+        if (position == getSelectedItemPosition() && mOnItemSelectedListener != null) {
             View v = getSelectedView();
             int selection = getSelectedItemPosition();
             mOnItemSelectedListener.onItemSelected(this, v, position, getAdapter().getItemId(selection));

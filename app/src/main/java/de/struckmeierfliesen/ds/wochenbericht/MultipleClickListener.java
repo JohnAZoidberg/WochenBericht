@@ -6,13 +6,13 @@ public class MultipleClickListener implements View.OnClickListener {
 
     View.OnClickListener[] onClickListeners;
 
-    public MultipleClickListener (View.OnClickListener... onClickListeners) {
+    public MultipleClickListener(View.OnClickListener... onClickListeners) {
         this.onClickListeners = onClickListeners;
     }
 
     @Override
     public void onClick(View v) {
-        for (View.OnClickListener onClickListener: onClickListeners){
+        for (View.OnClickListener onClickListener : onClickListeners) {
             onClickListener.onClick(v);
         }
     }

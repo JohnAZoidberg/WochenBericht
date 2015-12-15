@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class DeletableArrayAdapter<T> extends ArrayAdapter<T>  {
+public class DeletableArrayAdapter<T> extends ArrayAdapter<T> {
 
     private View.OnLongClickListener onLongClickListener;
 
@@ -36,19 +36,20 @@ public class DeletableArrayAdapter<T> extends ArrayAdapter<T>  {
 
     @Override
     public View getDropDownView(final int position, View convertView, ViewGroup parent) {
-        final View view =  super.getDropDownView(position, convertView, parent);
+        final View view = super.getDropDownView(position, convertView, parent);
         ImageView spinnerDeleteImage = (ImageView) view.findViewById(R.id.spinnerDelete);
         TextView label = (TextView) view.findViewById(R.id.spinnerText);
         // The last item(which acts as a button) and the dummy item should not have the delete button
         String addInstaller = view.getContext().getString(R.string.add_installer);
         String installer = view.getContext().getString(R.string.installer);
-        if(!label.getText().equals(installer) && !label.getText().equals(addInstaller)) spinnerDeleteImage.setVisibility(View.VISIBLE);
+        if (!label.getText().equals(installer) && !label.getText().equals(addInstaller))
+            spinnerDeleteImage.setVisibility(View.VISIBLE);
 
         spinnerDeleteImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(deleteListener != null) deleteListener.onDelete(position, v);
-                    else Dialog.alert(view.getContext(),
+                if (deleteListener != null) deleteListener.onDelete(position, v);
+                else Dialog.alert(view.getContext(),
                         "Position " + position + " has been clicked, but no DeleteListener attached");
             }
         });

@@ -49,7 +49,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
         dbConn.open();
         List<Entry> entries = dbConn.getEntriesWithInstaller(date);
         dbConn.close();
-        if(Util.isSameDay(date, mainActivity.getDate())) entryChanged(entries);
+        if (Util.isSameDay(date, mainActivity.getDate())) entryChanged(entries);
         return entries;
     }
 
@@ -107,7 +107,7 @@ public class EntryListFragment extends Fragment implements EntryListAdapter.OnEn
 
     public int getTotalHours(List<Entry> entries) {
         int hours = 0;
-        for(Entry entry : entries) {
+        for (Entry entry : entries) {
             hours += entry.duration;
         }
         return hours;
