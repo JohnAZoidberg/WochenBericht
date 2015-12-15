@@ -22,7 +22,23 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.*;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.CLIENTS_COLUMN_ADRESS;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.CLIENTS_COLUMN_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.CLIENTS_COLUMN_NAME;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.CLIENTS_COLUMN_TEL;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_CLIENT_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DATE;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_DURATION;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_INSTALLER_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_PICTURE_PATH;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.COLUMN_WORK;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.DATABASE_NAME;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.INSTALLERS_COLUMN_ID;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.INSTALLERS_COLUMN_NAME;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.TABLE_CLIENTS;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.TABLE_ENTRIES;
+import static de.struckmeierfliesen.ds.wochenbericht.MySQLiteHelper.TABLE_INSTALLERS;
 
 public class DataBaseConnection {
     // Database fields
@@ -238,8 +254,6 @@ public class DataBaseConnection {
 
         int clientId = updateOrInsertClient(entry.client);
         ContentValues values = entryToValues(entry, clientId);
-
-        // insert entry
         return (int) database.insert(TABLE_ENTRIES, null, values);
     }
 
@@ -247,8 +261,8 @@ public class DataBaseConnection {
         int clientId = -1;
         // check if client exists
         Cursor cursor = database.query(TABLE_CLIENTS, new String[]{CLIENTS_COLUMN_ID},
-                CLIENTS_COLUMN_NAME + " = '" + client + "'",
-                null, null, null, null);
+                CLIENTS_COLUMN_NAME + " = ?", new String[]{client},
+                null, null, null);
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             clientId = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_ID));
@@ -350,8 +364,8 @@ public class DataBaseConnection {
     public void renameInstaller(String oldInstaller, String newInstaller) {
         ContentValues values = new ContentValues();
         values.put(INSTALLERS_COLUMN_NAME, newInstaller);
-        //return 1 == database.update(TABLE_INSTALLERS, values, INSTALLERS_COLUMN_NAME + " = " + oldInstaller, null);
-        database.execSQL("UPDATE " + TABLE_INSTALLERS + " SET " + INSTALLERS_COLUMN_NAME + " = '" + newInstaller + "' WHERE " + INSTALLERS_COLUMN_NAME + " = '" + oldInstaller + "'");
+        database.update(TABLE_INSTALLERS, values, INSTALLERS_COLUMN_NAME + " = ?", new String[]{oldInstaller});
+        //database.execSQL("UPDATE " + TABLE_INSTALLERS + " SET " + INSTALLERS_COLUMN_NAME + " = '" + newInstaller + "' WHERE " + INSTALLERS_COLUMN_NAME + " = '" + oldInstaller + "'");
     }
 
     public List<Client> getAllClientObjects(boolean trim) {
@@ -413,10 +427,10 @@ public class DataBaseConnection {
         database.update(TABLE_CLIENTS, values, CLIENTS_COLUMN_ID + " = " + clientId, null);
     }
 
-    private Client queryClient(String where) {
+    private Client queryClient(String where, String[] selectionArgs) {
         Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_CLIENTS +
                         " WHERE " + where,
-                null);
+                selectionArgs);
         cursor.moveToFirst();
         int clientId = cursor.getInt(cursor.getColumnIndex(CLIENTS_COLUMN_ID));
         String name = cursor.getString(cursor.getColumnIndex(CLIENTS_COLUMN_NAME));
@@ -432,11 +446,11 @@ public class DataBaseConnection {
 
 
     public Client getClient(String client) {
-        return queryClient(CLIENTS_COLUMN_NAME + " = '" + client + "'");
+        return queryClient(CLIENTS_COLUMN_NAME + " = ?", new String[]{client});
     }
 
     public Client getClient(int clientId) {
-        return queryClient(CLIENTS_COLUMN_ID + " = " + clientId);
+        return queryClient(CLIENTS_COLUMN_ID + " = " + clientId, null);
     }
 
     public void deleteClient(int clientId) {
@@ -446,8 +460,9 @@ public class DataBaseConnection {
 
     // -1 signals successful rename process, otherwise the id of the client with the same name is returned
     public int renameClient(int clientId, String newName) {
-        Cursor query = database.query(TABLE_CLIENTS, new String[]{CLIENTS_COLUMN_ID}, CLIENTS_COLUMN_NAME + " = '" + newName + "'", null, null, null, null);
-        //Cursor query = database.query(TABLE_ENTRIES, new String[]{COLUMN_ID}, COLUMN_CLIENT_ID + " = " + clientId, null, null, null, null);
+        Cursor query = database.query(TABLE_CLIENTS, new String[]{CLIENTS_COLUMN_ID},
+                CLIENTS_COLUMN_NAME + " = ?", new String[]{newName},
+                null, null, null);
         if (query.getCount() > 0) {
             query.moveToFirst();
             int oldId = query.getInt(query.getColumnIndex(CLIENTS_COLUMN_ID));
