@@ -79,6 +79,7 @@ public class Util {
         // TODO has not been tested
     }
 
+    // TODO maybe profile
     // returns true if either date is null
     public static boolean isSameDay(Date date1, Date date2) {
         return date1 == null || date2 == null
@@ -106,9 +107,21 @@ public class Util {
         else if (isSameDay(addDays(date1, 1), date2)) return -1;
         else if (isSameDay(addDays(date1, -1), date2)) return 1;
         else {
+            date1 = dateAtMidnight(date1);
+            date2 = dateAtMidnight(date2);
             long diffInMillies = date1.getTime() - date2.getTime();
             return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
         }
+    }
+
+    public static Date dateAtMidnight(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 
     public static File newFile(String fileName) {

@@ -9,7 +9,9 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main"
     tools:context=".MainActivity"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true" >
 
     <de.struckmeierfliesen.ds.wochenbericht.SelectAgainSpinner
         android:layout_width="wrap_content"
