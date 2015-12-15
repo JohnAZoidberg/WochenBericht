@@ -44,6 +44,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String SHOW_DATE = "show_date";
+
     private static final int NOT_EDITING = -1;
     private AutoCompleteTextView clientEdit;
     private EditText workEdit;
@@ -153,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
         installerSpinner = (SelectAgainSpinner) findViewById(R.id.spinner);
 
         getInstallers(avgEntry == null); // TODO if theres no installers and avgEntry == null there wont be any hint
-        installerAdapter = new DeletableArrayAdapter<String>(this,
-                R.layout.spinner_item_deletable, R.id.spinnerText/*android.R.layout.simple_spinner_item*/, installerStrings);
+        installerAdapter = new DeletableArrayAdapter<>(this,
+                R.layout.spinner_item_deletable, R.id.spinnerText, installerStrings);
         installerAdapter.setDeleteListener(new DeletableArrayAdapter.DeleteListener() {
             @Override
             public void onDelete(int position, View view) {
@@ -162,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
                 askForInstallerDeleteConfirmation(installer);
             }
         });
-        //installerAdapter.setDropDownViewResource(R.layout.spinner_item_deletable);//android.R.layout.simple_spinner_dropdown_item);
         installerSpinner.setAdapter(installerAdapter);
         installerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -188,10 +189,14 @@ public class MainActivity extends AppCompatActivity {
             installerId = avgEntry.installerId;
         }
 
+
+        // set date to a possible value from an intent
+        date = new Date(getIntent().getLongExtra(SHOW_DATE, date.getTime()));
         dayAdapter = new DayAdapter(getSupportFragmentManager());
         dayViewPager = (ViewPager) findViewById(R.id.listView);
         dayViewPager.setAdapter(dayAdapter);
-        dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2);
+        showDate(date);
+        setDate(date);
         onPageChangeListener = new ViewPager.OnPageChangeListener() {
 
             @Override
@@ -222,16 +227,13 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         dayViewPager.addOnPageChangeListener(onPageChangeListener);
-        //dayViewPager.setCurrentItem(50);
 
         // set up clientEdit
-
         List<String> clients = getClients();
         ArrayAdapter<String> clientEditAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, clients);
         clientEdit.setAdapter(clientEditAdapter);
 
         // set up Fab which is only to be used while debugging
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -498,6 +500,9 @@ public class MainActivity extends AppCompatActivity {
         if (Math.abs(dayDifference) < DayAdapter.DAY_FRAGMENTS / 2) {
             dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2 - dayDifference);
         } else {
+            if (Util.isSameDay(date, this.date)) {
+                showDate(new Date());
+            }
             de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this,
                     getString(R.string.day_scroll_limit, DayAdapter.DAY_FRAGMENTS / 2));
         }

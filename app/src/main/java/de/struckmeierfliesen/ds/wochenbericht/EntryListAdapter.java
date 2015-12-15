@@ -79,7 +79,7 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
 
     public interface OnEntryClickListener {
         public void entryClicked(View view, Entry entry);
-        public void entryLongClicked(View view, Entry entry);
+        public boolean entryLongClicked(View view, Entry entry);
     }
 
     public class EntryHolder extends RecyclerView.ViewHolder {
@@ -100,7 +100,7 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
                 @Override
                 public boolean onLongClick(View v) {
                     if (clickListener != null)
-                        clickListener.entryLongClicked(v, items.get(getAdapterPosition()));
+                        return clickListener.entryLongClicked(v, items.get(getAdapterPosition()));
                     return true;
                 }
             });

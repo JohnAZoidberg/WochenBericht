@@ -17,10 +17,15 @@ import de.struckmeierfliesen.ds.wochenbericht.databinding.EntryDetailListBinding
 public class EntryDetailListAdapter extends RecyclerView.Adapter<EntryDetailListAdapter.EntryHolder> {
 
     private List<Entry> items;
+    private EntryListAdapter.OnEntryClickListener clickListener;
 
     public EntryDetailListAdapter(List<Entry> data) {
         super();
         items = data;
+    }
+
+    public void setEntryClickListener(EntryListAdapter.OnEntryClickListener listener) {
+        this.clickListener = listener;
     }
 
     @Override
@@ -53,6 +58,21 @@ public class EntryDetailListAdapter extends RecyclerView.Adapter<EntryDetailList
         public EntryHolder(EntryDetailListBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
+            binding.entriesList.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (clickListener != null)
+                        clickListener.entryClicked(v, items.get(getAdapterPosition()));
+                }
+            });
+            binding.entriesList.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (clickListener != null)
+                        return clickListener.entryLongClicked(v, items.get(getAdapterPosition()));
+                    return true;
+                }
+            });
 
             binding.entryImageView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override

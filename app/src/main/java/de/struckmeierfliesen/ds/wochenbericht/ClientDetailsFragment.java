@@ -27,8 +27,6 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
 
     public static final String ARG_CLIENT_NAME = "client.name";
     public static final String ARG_CLIENT_ID = "client.id";
-    public static final String ARG_CLIENT_TEL = "client.tel";
-    public static final String ARG_CLIENT_ADRESS = "client.tel";
     private ClientLoaderActivity activity;
     private EntryDetailListAdapter entryListAdapter;
     private Client client = null;
@@ -79,6 +77,19 @@ public class ClientDetailsFragment extends Fragment implements ClientActivity.Up
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         List<Entry> entries = activity.loadEntries(client.id);
         entryListAdapter = new EntryDetailListAdapter(entries);
+        entryListAdapter.setEntryClickListener(new EntryListAdapter.OnEntryClickListener() {
+            @Override
+            public void entryClicked(View view, Entry entry) {
+                Intent intent = new Intent(activity, MainActivity.class);
+                intent.putExtra(MainActivity.SHOW_DATE, entry.date.getTime());
+                startActivity(intent);
+            }
+
+            @Override
+            public boolean entryLongClicked(View view, Entry entry) {
+                return false;
+            }
+        });
         recyclerView.setAdapter(entryListAdapter);
         return rootView;
     }
