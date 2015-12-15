@@ -8,7 +8,7 @@ import android.util.SparseArray;
 import android.view.ViewGroup;
 
 public class DayAdapter extends FragmentStatePagerAdapter {
-    public static final int DAY_FRAGMENTS = 50;
+    public static final int DAY_FRAGMENTS = 365;
 
     SparseArray<EntryListFragment> registeredFragments = new SparseArray<EntryListFragment>();
 

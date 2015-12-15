@@ -38,7 +38,7 @@
     <string name="year">Year</string>
     <string name="page">Page</string>
     <string name="all_installers_will_be_deleted">All entries with this installer will be deleted!</string>
-    <string name="fifty_day_limit">Days more than 50 days in the past or future cannot be selected!.</string>
+    <string name="day_scroll_limit">Days more than %d days in the past or future cannot be selected!.</string>
     <plurals name="xHours">
         <item quantity="one">%s hour</item>
         <item quantity="other">%s hours</item>

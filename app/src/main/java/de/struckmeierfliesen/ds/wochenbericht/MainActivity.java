@@ -495,10 +495,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void showDate(Date date) {
         int dayDifference = Util.getDayDifference(new Date(), date);
-        if (Math.abs(dayDifference) < 50) {
+        if (Math.abs(dayDifference) < DayAdapter.DAY_FRAGMENTS / 2) {
             dayViewPager.setCurrentItem(DayAdapter.DAY_FRAGMENTS / 2 - dayDifference);
         } else {
-            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.fifty_day_limit));
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this,
+                    getString(R.string.day_scroll_limit, DayAdapter.DAY_FRAGMENTS / 2));
         }
     }
 

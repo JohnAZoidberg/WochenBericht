@@ -39,7 +39,7 @@
     <string name="year">Jahr</string>
     <string name="page">Seite</string>
     <string name="all_installers_will_be_deleted">Alle Arbeitseinträge mit diesem Gesellen werden auch gelöscht!</string>
-    <string name="fifty_day_limit">Tage die mehr als 50 Tage in der Zukunft oder Vergangenheit liegen können nicht ausgewählt werden.</string>
+    <string name="day_scroll_limit">Tage die mehr als %d Tage in der Zukunft oder Vergangenheit liegen können nicht ausgewählt werden.</string>
     <plurals name="xHours">
         <item quantity="one">%s Stunde</item>
         <item quantity="other">%s Stunden</item>
