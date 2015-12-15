@@ -9,7 +9,7 @@
     <string name="date">Date</string>
     <string name="duration">Duration</string>
     <string name="installer">Journeyman</string>
-    <string name="please_enter_input">Please fill all fields</string>
+    <string name="please_enter_input">Please fill in all fields.</string>
     <string name="save">Save</string>
     <string name="work_description">Work description</string>
     <string name="only_present">You cannot select a date which lies in the future.</string>

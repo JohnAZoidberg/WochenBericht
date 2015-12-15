@@ -10,7 +10,7 @@
     <string name="work_description">Arbeitsbeschreibung</string>
     <string name="duration">Dauer</string>
     <string name="save">Speichern</string>
-    <string name="please_enter_input">Bitte etwas eingeben.</string>
+    <string name="please_enter_input">Bitte alles ausfüllen.</string>
     <string name="installer">Geselle</string>
     <string name="only_present">Du kannst kein Datum in der Zukunft auswählen.</string>
     <string name="tradeschool">Berufsschule</string>

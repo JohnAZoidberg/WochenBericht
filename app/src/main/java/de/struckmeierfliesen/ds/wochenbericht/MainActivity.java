@@ -422,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
         String clientName = clientEdit.getText().toString().trim();
         String workString = workEdit.getText().toString().trim();
 
-        if (workString.length() == 0 || clientName.length() == 0 || duration == -1 || installerId == -1) {
+        if (workString.length() == 0 || clientName.length() == 0 || duration < 1 || installerId == -1) {
             de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(this, getString(R.string.please_enter_input));
             return null;
         }
