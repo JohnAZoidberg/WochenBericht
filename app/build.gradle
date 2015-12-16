@@ -9,12 +9,13 @@ android {
         applicationId "de.struckmeierfliesen.ds.wochenbericht"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 10
-        versionName "Beta 0.5.1"
+        versionCode 11
+        versionName "Beta 0.5.2"
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

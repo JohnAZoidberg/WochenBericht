@@ -32,7 +32,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
-    public static final String APP_VERSION_NAME = "Beta 0.5.1";
+    public static final String APP_VERSION_NAME = "Beta 0.5.2";
     public static final String TEMP_IMAGE = "azubiLogTemp.jpg";
     public static final int SELECT_FILE = 0;
     public static final int REQUEST_CAMERA = 1;
