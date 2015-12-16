@@ -142,7 +142,7 @@ public class EntryListAdapter extends RecyclerView.Adapter<EntryListAdapter.Entr
                     } else {
                         Intent showPicIntent = new Intent(activity, PictureViewerActivity.class);
                         showPicIntent.putExtra("fileName", picturePath);
-                        showPicIntent.putExtra("title", "Picture Title " + entry);
+                        showPicIntent.putExtra("title", entry.toNiceString());
                         activity.startActivity(showPicIntent);
                     }
                 }

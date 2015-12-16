@@ -50,8 +50,14 @@ public class Entry {
     public String toString() {
         String installer = installerId + "";
         if (this.installer != null) installer = this.installer;
-        return "\"" + work + "\" ( " + Util.formatDate(date) + ")" +
+        return "Work: \"" + work + "\", (" + Util.formatDate(date) + "), " +
                 "bei " + client + " mit " + getInstaller() + "(" + installer + ")";
+    }
+
+    public String toNiceString() {
+        String installer = installerId + "";
+        if (this.installer != null) installer = this.installer;
+        return work + " bei " + client + " mit " + getInstaller() + " (" + Util.formatDate(date) + ")";
     }
 
     public String getPicturePath() {
