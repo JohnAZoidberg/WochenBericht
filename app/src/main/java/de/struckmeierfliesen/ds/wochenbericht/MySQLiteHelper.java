@@ -81,8 +81,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.d("onUpgrade", "OldVersion: " + oldVersion + " - newVersion: " + newVersion);
+        if (oldVersion == newVersion) return;
         final String TEMP_TABLE = "temp_table";
-        switch (newVersion) {
+        switch (oldVersion) {
             case SECOND_VERSION:
                 String upgradeQuery = "ALTER TABLE " + TABLE_ENTRIES + " ADD COLUMN " + COLUMN_PICTURE_PATH + " TEXT";
                 db.execSQL(upgradeQuery);
