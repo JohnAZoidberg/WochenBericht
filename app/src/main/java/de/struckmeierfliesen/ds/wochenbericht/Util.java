@@ -11,16 +11,19 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.google.common.io.Files;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -360,5 +363,22 @@ public class Util {
 
     public static boolean randomBoolean() {
         return randomGenerator.nextBoolean();
+    }
+
+    public static void logToFile(String message, Throwable exception) {
+        message += "Stacktrace:\n" + Log.getStackTraceString(exception);
+        logToFile(message);
+    }
+    public static void logToFile(String message) {
+        String logString = new Date().toString() + ": \n";
+        logString += message;
+        logString += "\n------------------------------------------------------\n";
+        try {
+            Files.append(logString, Util.newFile("AzubiLogErrors.txt"), Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("hello my friend");
+        }
+        Log.d("LogToFile", logString);
     }
 }

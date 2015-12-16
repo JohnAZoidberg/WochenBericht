@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 public class DayAdapter extends FragmentStatePagerAdapter {
     public static final int DAY_FRAGMENTS = 365;
 
-    SparseArray<EntryListFragment> registeredFragments = new SparseArray<EntryListFragment>();
+    SparseArray<EntryListFragment> registeredFragments = new SparseArray<>();
 
     public DayAdapter(FragmentManager fm) {
         super(fm);
@@ -29,10 +29,22 @@ public class DayAdapter extends FragmentStatePagerAdapter {
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         EntryListFragment fragment = (EntryListFragment) super.instantiateItem(container, position);
-        Bundle args = new Bundle();
-        args.putInt("position", position);
-        fragment.setArguments(args);
-        registeredFragments.put(position, fragment);
+        try {
+            Bundle args = new Bundle();
+            args.putInt("position", position);
+            fragment.setArguments(args);
+            registeredFragments.put(position, fragment);
+        } catch (IllegalStateException e) {
+            String msg = "SCREENSHOT! ERROR!\n" +
+                    "IllegalStateException: " +
+                    "fragment.isAdded() => " + fragment.isAdded() + "\n" +
+                    "registeredFragments contains => " + registeredFragments.get(position).equals(fragment) + "\n" +
+                    "Bitte mit Screenshot melden!";
+            Util.logToFile(msg, e);
+            Dialog.alert(fragment.getContext(),
+                    msg,
+                    true);
+        }
         return fragment;
     }
 
