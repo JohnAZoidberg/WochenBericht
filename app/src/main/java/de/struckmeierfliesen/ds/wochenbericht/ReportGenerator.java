@@ -16,26 +16,38 @@ import java.util.List;
 
 public class ReportGenerator {
     public static final int CUTOFF = 85;
+    public static final String FILE_NAME = "newPDF.pdf";
 
     private DataBaseConnection dbConn;
     private SharedPreferences sharedPrefs;
 
-    private PDDocument pdfTemplate;
+    private static PDDocument pdfTemplate = null;
+    private static PDPage page = null;
     private PDPageContentStream contentStream;
-    private PDPage page;
     private PDFont font;
+
+    public static void preloadTemplate(Context context) {
+        if (pdfTemplate == null || page == null) {
+            try {
+                pdfTemplate = PDDocument.load(context.getResources().openRawResource(R.raw.sample_report_raw));
+                page = (PDPage) pdfTemplate.getDocumentCatalog().getAllPages().get(0);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     public ReportGenerator(Context context) throws IOException, COSVisitorException {
         dbConn = new DataBaseConnection(context);
         sharedPrefs = context.getSharedPreferences(
                 "de.struckmeierfliesen.ds.wochenbericht.SETTINGS", Context.MODE_PRIVATE);
 
-        pdfTemplate = PDDocument.load(context.getResources().openRawResource(R.raw.sample_report_raw));
-        // TODO preload on fridays
-        page = (PDPage) pdfTemplate.getDocumentCatalog().getAllPages().get(0);
+        if (pdfTemplate == null || page == null) {
+            preloadTemplate(context);
+        }
+
         font = PDType1Font.HELVETICA;
         contentStream = new PDPageContentStream(pdfTemplate, page, true, true);
-        page.getContents().getStream();
     }
 
     private void addText(String content, float x, float y) throws IOException {
@@ -114,7 +126,7 @@ public class ReportGenerator {
 
         contentStream.close();
 
-        pdfTemplate.save(Util.newFile("newPDF.pdf"));
+        pdfTemplate.save(Util.newFile(FILE_NAME));
         pdfTemplate.close();
     }
 

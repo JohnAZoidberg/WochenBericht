@@ -263,8 +263,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(MainActivity.this, "Please don't do that!");
-                //dayViewPager.setCurrentItem(dayViewPager.getCurrentItem() + 1);
-                //dayViewPager.setCurrentItem(dayViewPager.getCurrentItem());
+                createReport();
                 return true;
             }
         });
@@ -285,8 +284,10 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_generate:
                 createReport();
+                break;
             case R.id.action_clients:
                 startActivity(new Intent(this, ClientActivity.class));
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -347,11 +348,17 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException | COSVisitorException e) {
                 e.printStackTrace();
             }
-            return "newPDF.pdf";
+            return ReportGenerator.FILE_NAME;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            de.struckmeierfliesen.ds.wochenbericht.Dialog.alert(MainActivity.this, values[0]);
         }
     }
 
     private void createReport() {
+        ReportGenerator.preloadTemplate(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_create_report, null);
         final EditText editComment = (EditText) view.findViewById(R.id.editComment);
         final EditText editPageNumber = (EditText) view.findViewById(R.id.editPageNumber);
